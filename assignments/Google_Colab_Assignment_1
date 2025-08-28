@@ -1,0 +1,28 @@
+I'm okay with you using AI to help with code. I'm not okay with you using AI to write the written parts for you. When students have used AI to write for them in the past, I usually don't notice until late in the semester when it is too late to recover from the 0's that you will receive at the time of discovery.
+
+You will need to setup your Google Colab notebook before completing this assignment. Please see the Introduction to Econometrics video for instructions. You can use my Google Colab as an example to complete the assignment.
+
+Tasks
+
+(1) Submit a professional assignment with proper grammar, punctuation, and clear organization.
+
+(2) Come up with a market and plot a supply and demand curve for that market.
+
+(3) Come up with reasons that the supply and demand curves might shift
+
+(4) Create a plot with at least five supply curves and at least five demand curves
+
+(5) Extract a subset of the equilibrium points and plot them with a regression line and display the slope
+
+(6) Comment on the meaningfulness of this slope. Can we learn anything about the parameters of supply and demand curves from this data?
+
+(7) Create the plot again, but this time do ten supply curves and one demand curve.
+
+(8) Create the new scatter plot with the regression line again and comment on the slope. Can we learn anything about the parameters of the supply and demand curves from this data?
+
+(9) Suppose you collected data on prices and quantities in your market. What other data might you collect to apply the above logic to estimate the parameters of supply and demand? Explain thoroughly.
+
+(10) Write a paragraph about what you learned from this assignment. Use your own words.
+
+NOTE*
+This will need to become a google colab link that I can send to the professor.
