@@ -1,0 +1,17 @@
+Tasks
+
+(1) Use the 
+ condition to prove that the sample regression line goes through the sample means of the dependent and independent variables, i.e., that 
+. 
+
+(2) Create two charts similar to the ones in the lecture showing the different potential regression lines and sum of squared errors minimization, but instead of holding the intercept constant and varying the slope, hold the slope constant and vary the intercept.
+
+(3) Show the mathematical steps to solve the normal equations from the enrollment and unemployment rate example for 
+ and 
+.
+
+(4) Note that 
+ implies that 
+ in the sample. We assume that 
+ in the population which we will discuss in more detail later. Rigorously argue that the supply and demand simultaneity issue discussed in the first lecture video is a violation of the assumption 
+. Use math or examples in Python charts to support your argument.
