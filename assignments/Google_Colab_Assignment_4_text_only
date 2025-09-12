@@ -1,0 +1,12 @@
+Tasks
+
+(1) Homoscedasticity is one of the assumptions required to show that Ordinary Least Squares is BLUE. OLS will still be unbiased in the presence of heteroscedasticity, i.e.,
+, in the presence of heteroscedasticity. However, heteroscedasticity increases the variance of the OLS estimator. Run a simulation that loops the OLS estimator over data with and without heteroscedasticity and then show that the slope estimates from the heteroscedastic data has higher variance. Note that this is different than what I do in the video by just looking at one standard error. Note that
+depends on other things that you should try to hold as close to constant as possible in your simulation.
+
+(2) Come up with an example of a linear estimator that is unbiased but has a bigger variance than the OLS estimator. You don not need to prove it has a higher variance, but you should be able to come up with an example that almost certainly has a higher variance.
+
+(3) The Likelihood Function for a linear regression under the assumption that the error terms are normally distributed with variance
+is:
+
+explain the terms of the Likelihood function then prove that this likelihood function leads to the same estimator as OLS under the classic assumptions. I'm okay with you using mathematical software like Mathematica or AI, or any other resources to help with this problem. Explain when an analyst might choose to use Maximum Likelihood estimation for regression in the context of the assumptions.
