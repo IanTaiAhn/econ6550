@@ -1,0 +1,63 @@
+Table with row headers in column A and column headers in row 4 through 6,,,,,,,,
+Table 1. Income and Earnings Summary Measures by Selected Characteristics: 2015 and 2016,,,,,,,,
+"(Income in 2016 dollars. Households and people as of March of the following year. For information on confidentiality protection, sampling error, nonsampling error, and definitions, see www2.census.gov/programs-surveys/cps/techdocs/cpsmar17.pdf)",,,,,,,,
+Characteristic,2015,,,2016,,,Percentage change* in real median income (2016 less 2015),
+,Number (thousands),"Median income
+(dollars)",,Number (thousands),"Median income
+(dollars)",,,
+,,Estimate,"Margin of
+error1 (±)",,Estimate,"Margin of
+error1 (±)",Estimate,"Margin of
+error1 (±)"
+HOUSEHOLDS,,,,,,,,
+All Households,"125,819","57,230",534,"126,224","59,039",717,*3.2,1.56
+Type of Household,,,,,,,,
+Family households,"82,184","73,077",615,"82,827","75,062",692,*2.7,1.14
+.Married-couple,"60,251","85,696",995,"60,804","87,057",695,*1.6,1.36
+".Female householder, no husband present","15,622","38,275","1,008","15,572","41,027",871,*7.2,3.51
+".Male householder, no wife present","6,310","56,567","1,615","6,452","58,051","2,172",2.6,4.34
+Nonfamily households,"43,635","34,232",786,"43,396","35,761",467,*4.5,2.70
+.Female householder,"23,093","29,389",832,"22,858","30,572",603,*4.0,3.56
+.Male householder,"20,542","41,278",755,"20,539","41,749",701,1.1,2.34
+Race2 and Hispanic Origin of Householder,,,,,,,,
+White,"99,313","60,869",635,"99,400","61,858",549,*1.6,1.33
+"..White, not Hispanic","84,445","63,745",903,"84,387","65,041",839,*2.0,1.81
+Black,"16,539","37,364",855,"16,733","39,490","1,187",*5.7,3.90
+Asian,"6,328","78,141","2,826","6,392","81,431","1,917",4.2,4.31
+Hispanic (any race),"16,667","45,719","1,024","16,915","47,675","1,113",*4.3,3.45
+Age of Householder,,,,,,,,
+Under 65 years,"94,820","64,144",832,"94,425","66,487",580,*3.7,1.62
+..15 to 24 years,"6,361","36,564","1,350","6,238","41,655","1,145",*13.9,5.11
+..25 to 34 years,"20,047","58,091","1,135","20,109","60,932",802,*4.9,2.55
+..35 to 44 years,"21,222","72,319",970,"21,500","74,481","1,834",*3.0,2.81
+..45 to 54 years,"23,294","74,790","1,891","22,808","77,213","1,156",*3.2,3.05
+..55 to 64 years,"23,896","63,596","1,489","23,770","65,239","1,309",2.6,2.87
+65 years and older,"30,998","39,001",781,"31,799","39,823",909,2.1,2.90
+Nativity of Householder,,,,,,,,
+Native born,"107,081","57,896",565,"107,192","59,781",691,*3.3,1.50
+Foreign born,"18,738","52,956","1,141","19,031","55,559","1,190",*4.9,3.17
+..Naturalized citizen,"9,856","62,766","1,342","10,054","63,894","2,628",1.8,4.58
+..Not a citizen,"8,881","45,708","1,743","8,978","48,066","1,733",5.2,5.63
+Region,,,,,,,,
+Northeast,"22,347","62,968","1,359","22,325","64,390","1,806",2.3,3.34
+Midwest,"27,455","57,803","1,353","27,363","58,305","1,476",0.9,3.23
+South,"47,822","51,821",630,"48,065","53,861","1,160",*3.9,2.36
+West,"28,195","62,218",957,"28,470","64,275","1,708",*3.3,3.04
+Residence3,,,,,,,,
+Inside metropolitan statistical areas,"107,615","60,007",790,"108,215","61,521",535,*2.5,1.60
+..Inside principal cities,"42,615","52,027",654,"42,652","54,834","1,187",*5.4,2.65
+..Outside principal cities,"65,000","64,954",964,"65,562","66,319",767,*2.1,1.85
+Outside metropolitan statistical areas,"18,204","45,221","1,562","18,009","45,830","1,013",1.3,3.50
+"EARNINGS OF FULL-TIME, YEAR-ROUND WORKERS",,,,,,,,
+Men with earnings,"63,887","51,859",227,"64,953","51,640",211,-0.4,0.56
+Women with earnings,"47,211","41,257",244,"48,328","41,554",246,0.7,0.79
+Female-to-male earnings ratio,X,0.796,0.0049,X,0.805,0.0052,*1.1,0.85
+*An asterisk preceding an estimate indicates change is statistically different from zero at the 90 percent confidence level.,,,,,,,,
+X Not applicable.,,,,,,,,
+"1 A margin of error is a measure of an estimate's variability.  The larger the margin of error in relation to the size of the estimate, the less reliable the estimate.  This number, when added to and subtracted from the estimate, forms the 90 percent confidence interval.  Margin of errors shown in this table are based on standard errors calculated using replicate weights.  For more information, see ""Standard Errors and Their Use"" at <www2.census.gov/library/publications/2017/demo/p60-259sa.pdf>",,,,,,,,
+"2 Federal surveys give respondents the option of reporting more than one race.  Therefore, two basic ways of defining a race group are possible.  A group such as Asian may be defined as those who reported Asian and no other race (the race-alone or single-race concept) or as those who reported Asian regardless of whether they also reported another race (the race-alone-or-in-combination concept).  This table shows data using the first approach (race alone).  The use of the single-race population does not imply that it is the preferred method of presenting or analyzing data.  The Census Bureau uses a variety of approaches.  Information on people who reported more than one race, such as White and American Indian and Alaska Native or Asian and Black or African American, is available from the 2010 Census through American FactFinder.  About 2.9 percent of people reported more than one race in the 2010 Census.   Data for American Indians and Alaska Natives, Native Hawaiians and Other Pacific  Islanders, and those reporting two or more races are not shown separately.
+",,,,,,,,
+"3 For information on metropolitan statistical areas and principal cities, see <https://www.census.gov/programs-surveys/metro-micro/about/glossary.html>.",,,,,,,,
+Note: Inflation-adjusted estimates may differ slightly from other published data due to rounding.,,,,,,,,
+"Source:  U.S. Census Bureau, Current Population Survey, 2016 and 2017 Annual Social and Economic Supplements.",,,,,,,,
+,,,,,,,,

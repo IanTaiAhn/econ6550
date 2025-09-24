@@ -1,0 +1,62 @@
+Table with row headers in column A and column headers in rows 4 through 6,,,,,,,,
+"Table A-1.
+Income Summary Measures by Selected Characteristics: 2019 and 2020",,,,,,,,
+"(Income in 2020 dollars, adjusted using the CPI-U-RS. Households as of March of the following year. Information on confidentiality protection, sampling error, nonsampling error, and definitions is available at <https://www2.census.gov/programs-surveys/cps/techdocs/cpsmar21.pdf>)",,,,,,,,
+Characteristic,2019,,,2020,,,"Percent change in
+real median income
+(2020 less 2019)*",
+,Number (thousands),"Median income
+(dollars)",,Number (thousands),"Median income
+(dollars)",,,
+,,Estimate,Margin of error1 (±),,Estimate,Margin of error1 (±),Estimate,Margin of error1 (±)
+HOUSEHOLDS,,,,,,,,
+All households,"128,451","69,560",916,"129,931","67,521",782,*-2.9,1.34
+Type of Household,,,,,,,,
+Family households,"83,677","89,249","1,127","83,907","86,372",851,*-3.2,1.27
+...Married-couple,"62,342","103,585","1,034","61,454","101,517",850,*-2.0,1.04
+"...Female householder, no spouse present","14,832","48,698",997,"15,490","49,214","1,444",1.1,3.39
+"...Male householder, no spouse present","6,503","70,108","3,025","6,963","67,304","2,317",-4.0,4.80
+Nonfamily households,"44,774","41,747",472,"46,024","40,464",652,*-3.1,1.66
+...Female householder,"23,470","35,044",861,"24,244","35,574",685,1.5,2.89
+...Male householder,"21,304","49,101","1,268","21,781","47,259","1,227",*-3.8,3.07
+Race2 and Hispanic Origin of Householder,,,,,,,,
+White,"100,568","73,105",810,"101,582","71,231",736,*-2.6,1.16
+"...White, not Hispanic","84,868","77,007",887,"85,336","74,912",936,*-2.7,1.30
+Black,"17,054","46,005","1,227","17,358","45,870","1,268",-0.3,3.67
+Asian,"6,853","99,400","3,106","6,987","94,903","3,794",*-4.5,4.15
+Hispanic (any race),"17,667","56,814","1,187","18,349","55,321","1,183",*-2.6,2.43
+Age of Householder,,,,,,,,
+Under 65 years,"93,524","78,845","1,165","94,243","76,800",737,*-2.6,1.40
+...15 to 24 years,"5,406","48,532","2,158","5,485","46,886","1,540",-3.4,5.05
+...25 to 34 years,"20,424","71,161","1,424","20,654","71,566","1,154",0.6,2.15
+...35 to 44 years,"21,432","89,968","2,563","22,105","85,694","1,712",*-4.8,2.93
+...45 to 54 years,"21,659","93,372","2,008","21,663","90,359","1,958",*-3.2,2.50
+...55 to 64 years,"24,603","76,631","1,501","24,336","74,270","2,105",*-3.1,2.45
+65 years and older,"34,927","47,949",923,"35,688","46,360",934,*-3.3,2.23
+Nativity of Householder,,,,,,,,
+Native-born,"108,851","70,342",971,"110,348","68,795",977,*-2.2,1.58
+Foreign-born,"19,600","65,711","1,954","19,584","61,984",907,*-5.7,2.67
+...Naturalized citizen,"11,208","72,431","2,065","11,201","68,760","2,074",*-5.1,3.50
+...Not a citizen,"8,392","58,388","2,631","8,382","55,099","1,791",*-5.6,4.36
+Region,,,,,,,,
+Northeast,"22,031","77,172","1,976","22,082","75,211","1,640",-2.5,2.63
+Midwest,"27,757","69,208","1,846","27,865","66,968","1,734",*-3.2,3.08
+South,"49,486","62,657",775,"50,385","61,243",821,*-2.3,1.40
+West,"29,177","76,714","1,260","29,600","74,951","1,275",*-2.3,1.91
+Residence3,,,,,,,,
+Inside metropolitan statistical areas,"110,679","72,859",708,"111,999","70,956",666,*-2.6,1.03
+...Inside principal cities,"42,992","64,541","1,606","43,470","62,444","1,178",*-3.2,2.56
+...Outside principal cities,"67,687","78,133","1,034","68,528","76,022",874,*-2.7,1.32
+Outside metropolitan statistical areas,"17,772","52,750","1,165","17,933","51,616","1,157",-2.1,2.50
+Educational Attainment of Householder,,,,,,,,
+"....Total, aged 25 and older","123,045","71,186",675,"124,446","69,228",918,*-2.7,1.25
+No high school diploma,"10,310","31,347",793,"10,052","29,547","1,063",*-5.7,3.95
+"High school, no college","31,071","49,316","1,005","31,647","47,405",973,*-3.9,2.65
+Some college,"33,852","65,510","1,079","33,646","63,653","1,364",*-2.8,2.44
+Bachelor's degree or higher,"47,812","110,002","1,792","49,102","106,936","1,499",*-2.8,1.87
+*An asterisk preceding an estimate indicates change is statistically different from zero at the 90 percent confidence level.,,,,,,,,
+"1 A margin of error (MOE) is a measure of an estimate's variability. The larger the MOE in relation to the size of the estimate, the less reliable the estimate. This number, when added to and subtracted from the estimate, forms the 90 percent confidence interval. MOEs shown in this table are based on standard errors calculated using replicate weights.",,,,,,,,
+"2 Federal surveys give respondents the option of reporting more than one race. Therefore, two basic ways of defining a race group are possible. A group such as Asian may be defined as those who reported Asian and no other race (the race-alone or single-race concept) or as those who reported Asian regardless of whether they also reported another race (the race-alone-or-in-combination concept). This table shows data using the first approach (race alone). The use of the single-race population does not imply that it is the preferred method of presenting or analyzing data. The Census Bureau uses a variety of approaches. Data for American Indians and Alaska Natives, Native Hawaiians and Other Pacific Islanders, and those reporting two or more races are not shown separately.",,,,,,,,
+3 Information on metropolitan statistical areas and principal cities is available at <www.census.gov/programs-surveys/metro-micro/about/glossary.html>.,,,,,,,,
+Note: Inflation-adjusted estimates may differ slightly from other published data due to rounding.,,,,,,,,
+"Source: U.S. Census Bureau, Current Population Survey, 2020 and 2021 Annual Social and Economic Supplements (CPS ASEC).",,,,,,,,
