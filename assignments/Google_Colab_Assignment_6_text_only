@@ -1,0 +1,3 @@
+(1) Find or come up with a model of simultaneous equations other than the supply and demand model that will result in endogeneity if one or more of the equations is estimated with OLS. Come up with one or more exogenous regressors that might be used to estimate the parameters of at least one of the equations in the system. Collect real data associated with your example, or simulated data associated with your example, and estimate it using OLS and IV or 2SLS.
+
+(2) Do some research on standard errors for IV and 2SLS estimators. Use this to decide the "best" standard error associated with your IV or 2SLS estimation above. This may be one of the standard errors I showed in the video or a different method. Creative/different approaches will be awarded, e.g., bootstrapping. 
