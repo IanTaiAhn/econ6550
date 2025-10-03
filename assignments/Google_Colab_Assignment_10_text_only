@@ -1,0 +1,5 @@
+(1) Collect data to which applying an autoregression might make sense. Explain why autoregression might be a good fit for the data. Use an AR(1) and and an AR(optimal) model to predict the data and display the original data and predicted values in a time series chart. Check if the AIC and BIC criteria both result in the same number of lags for the AR(optimal) model. 
+
+(2) Hide the end of the data set and forecast the series using the different models. Decide which model you would use and explain why.
+
+(3) Add one other independent variable to the model and compare the forecasts of this updated model to the previous ones.
