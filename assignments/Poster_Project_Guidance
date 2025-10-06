@@ -1,0 +1,24 @@
+Poster Project Guidance
+Hi All,
+
+In this week's video, I offer some guidance for the poster presentation, and I will broadly summarize that here. The three most recent videos, including today's, have covered topics that are somewhat unique to econometrics: (1) Generalized Least Squares, (2) Endogeneity, and (3) Estimating Treatment effects. Most students do a project on one of these areas:
+
+(1) Generalized Least Squares
+
+Find observational data for a regression related to a research question of interest (how does x affect y?) that displays heteroskedasticity and/or autocorrelation. Assess the nature of heteroskedasticity and/or autocorrelation, and then use econometric techniques to address this problem. Run a regular regression and compare the results to the regressions with your fixes.
+
+(2) Endogeneity
+
+Find observational data for a regression related to a research question of interest. Make a theoretical argument that you expect at least one of the independent variables to be an endogenous regressor. You can make that argument explicitly using an underlying theoretical model (like a system of equations), or intuitively (e.g., tell a story about reverse causality.) Run a regular OLS regression and compare it to results from instrumental and/or 2SLS regressions.
+
+Do the above with simulated data. The benefit of simulation is that you can explicitly show the problem - compare OLS regression results to the "true" parameters you coded in, then show how various techniques (IV regression and/or 2SLS) can fix the problem.
+
+(3) Estimating Treatment Effects
+
+Focus on estimating the treatment effect of a policy or other intervention. As explained in the video, the focus here is often on sample selection. Find observational data associated with an intervention and estimate the treatment effect by using a difference-in-differences regression or similar technique.
+
+We will cover endogeneity and treatment effects again in the next two lectures.
+
+For the Abstract Submission, you do not need to have a complete project. It is okay if the final poster deviates from the abstract to some degree. Just summarize your plans and what you've completed so far. The primary reason to submit the abstract on time is to secure your spot at the presentation.
+
+I have also added a rubric for the actual Poster Presentation so you can see how I will assess that.
