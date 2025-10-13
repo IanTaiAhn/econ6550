@@ -1,0 +1,5 @@
+(1) Show that applying the difference-in-differences regression, <equation>, on a sample of just Utah and Colorado, where <y_it> is the crime rate, and treatment is recreational marijuana legalization, will give <equation>
+from the Treatment Effect lecture. You will need to start by noting things like beta_0 = the average crime rate in Utah before Colorado legalized marijuana,
+... Simulate data associated with this example.
+
+(2) Simulate or collect data that may suffer from an endogeneity issue. Explain the endogeneity issue. Compare the outcomes of a 2SLS model a Two-Stage Machine Learning model and discuss the similarities and differences. If there are no differences, explain why that is.
