@@ -1,0 +1,86 @@
+Datset Link
+https://data.mendeley.com/datasets/wrvjmdtjd9/1
+
+📌 Project Title
+Causal Impact of Online Ads on User Click Behavior: A Study Using OLS and Instrumental Variables
+
+🎯 Project Goals
+Estimate the effect of ad characteristics on click-through rates (CTR)
+
+Identify and address endogeneity in ad targeting
+
+Apply instrumental variable techniques to uncover causal relationships
+
+Compare traditional econometric methods with machine learning-based causal inference
+
+🧱 Dataset Overview
+Source: Mendeley Data – DOI: 10.17632/wrvjmdtjd9.1 Features:
+
+User demographics: age, gender, income, location
+
+Ad features: type, topic, placement
+
+Behavior: clicks, conversions, timestamps
+
+Context: device type, time of day, day of week
+
+🧪 Step-by-Step Workflow
+1. Exploratory Data Analysis (EDA)
+Visualize CTR by ad type, user demographics, and time of day
+
+Identify patterns and potential confounders
+
+2. OLS Regression
+Model: CTR ~ AdType + Topic + Placement + UserFeatures
+
+Evaluate coefficients and goodness-of-fit
+
+Discuss limitations due to potential endogeneity
+
+3. Diagnosing Endogeneity
+Hypothesize that ad targeting may be biased (e.g., high-income users get more engaging ads)
+
+Use correlation analysis and residual plots to detect bias
+
+4. Instrumental Variables (IV)
+Identify potential instruments:
+
+Time of day (ads shown randomly at different times)
+
+Device type (ad format may vary by device but not user intent)
+
+Apply IV regression: CTR ~ AdFeatures | Instruments
+
+Compare IV estimates to OLS
+
+5. Advanced Causal Methods (Optional)
+Use Double Machine Learning (via EconML) or Causal Forests to estimate heterogeneous treatment effects
+
+Compare predictive vs. causal performance
+
+6. Validation and Interpretation
+Cross-validate models
+
+Interpret coefficients and causal effects
+
+Discuss business implications (e.g., which ad types truly drive clicks?)
+
+📈 Deliverables
+Jupyter notebook or Python script with full analysis
+
+Visualizations of CTR patterns and model results
+
+Summary report or blog post explaining findings
+
+GitHub repo with README and documentation
+
+💼 Resume Highlights
+Causal inference using OLS and IV
+
+Real-world ad data analysis
+
+Machine learning integration (optional)
+
+Strong storytelling and business relevance
+
+Would you like help writing the README or structuring the GitHub repo? Or want to dive deeper into how to implement IV regression in Python?
