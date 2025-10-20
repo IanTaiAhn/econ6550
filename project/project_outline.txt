@@ -84,3 +84,28 @@ Machine learning integration (optional)
 Strong storytelling and business relevance
 
 Would you like help writing the README or structuring the GitHub repo? Or want to dive deeper into how to implement IV regression in Python?
+
+I found the author's profile from the college he is at so I guess I have to make some assumptions on the income and where he gathered this data from.
+https://vupune.ac.in/our-people/dr-jagadish-v-tawade
+
+The person that made the dataset.
+https://nitirajkulkarni.in/
+https://www.linkedin.com/in/nitirajkulkarni/?originalSubdomain=in
+
+Seems like I should consider this data to be from here:
+Pune, Maharashtra, India, is where Vishwakarma University is located in, concepted in 2017, and is where these two people are from who made this dataset.
+
+
+Feature definition(copilot is a lil dumb tho)
+Column Name	Description
+Age	Age of the user viewing the ad
+Gender	Gender of the user (e.g., Male/Female or binary)
+Income	Income level of the user
+Location	Geographic location of the user
+Ad Type	Format of the ad (e.g., banner, video)
+Ad Topic	Subject or category of the ad (e.g., tech, fashion)
+Ad Placement	Where the ad was displayed on the page
+Clicks	Number of times the user clicked the ad
+Click Time	Timestamp of the click event
+Conversion Rate	Whether the click led to a conversion (e.g., purchase)
+CTR	Click-through rate, typically calculated as clicks divided by impressions
