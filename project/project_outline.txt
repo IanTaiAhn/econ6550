@@ -109,3 +109,30 @@ Clicks	Number of times the user clicked the ad
 Click Time	Timestamp of the click event
 Conversion Rate	Whether the click led to a conversion (e.g., purchase)
 CTR	Click-through rate, typically calculated as clicks divided by impressions
+
+
+### Email back to professor:
+
+Endogeneity concern
+
+Click through rate and conversion rate are very similar. The only difference is that the conversion rate is the user performing a desired action like singing up for something I assume.
+I know he said to generate the data to show that this fixes it so this may not suffice.
+
+1. Endogeneity Concern
+Research Question: Does CTR causally affect Conversion Rate, or are both driven by unobserved ad quality?
+Problem: CTR might be endogenous — better ads get more clicks and more conversions.
+Solution: Use an instrumental variable (IV) for CTR — maybe something like Click Time or Ad Placement, if you can argue they affect CTR but not Conversion Rate directly.
+
+This question is more of a traditional approach but I worry it may be too simple and not much will be uncovered from it.
+2. Generalized Least Squares (GLS)
+Research Question: How do demographic and ad features influence Conversion Rate, accounting for heteroskedasticity across income levels or locations?
+Problem: Variance in Conversion Rate might differ by income or location.
+Solution: Use GLS to correct for non-constant error variance.
+
+This one is kind of cool as well since it kind of combines all of the things for this.
+"What is the causal effect of Ad Type on Conversion Rate, controlling for user demographics and ad context?"
+This lets you:
+Estimate treatment effects (Ad Type as treatment)
+Explore endogeneity (CTR as a potentially endogenous mediator)
+Use GLS if you detect heteroskedasticity (e.g., variance in Conversion Rate by Income)
+
