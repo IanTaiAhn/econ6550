@@ -136,3 +136,26 @@ Estimate treatment effects (Ad Type as treatment)
 Explore endogeneity (CTR as a potentially endogenous mediator)
 Use GLS if you detect heteroskedasticity (e.g., variance in Conversion Rate by Income)
 
+
+### Poster Project Intent ###
+It feels like the main idea for this poster project is for us to do some type of analysis, prediction, inference on a real dataset, and then using econometric techniques, we solve an underlying issue in the dataset.
+
+So for me. I know that the conversion rate column is going to be a value from 0%-100%.
+
+Alright. So I need to stop thinking of this from a perspective of a machine learning engineer.
+This is for econometrics and I've just found the when putting my dataset through the hausman-wu test I have endogeneity
+and or correlation.
+
+So in order to remedy this, I should do some instrumental variables, or a 2SLS to fix this.
+I don't think I have multicollinearity which is good because I used one-hot encoding for the initial endogenity analysis.
+Alright. So for this project it may be a good endogeneity concern question where I try to find a good instrument variable,
+or do both.
+
+WOW. Really good break through here. So. Clicks is definitely endogenous. While it isn't my dependent variable that
+I am trying to find predictions for or inference and causal interactions. Clicks is still endogenous and that will bias
+my conversion rate variable. So any estimate on conversion rate is biased
+Alright. And then if I just decided to drop clicks then I get omitted variable bias which would cause my error term to 
+spike beacuse clicks is correlated to it, it would eat it's effects.
+
+Alright. I honestly have a solvable econometric problem I think. If I can find an exogenous regressor to use as an IV
+for the variable clicks then my model should be less biased.
