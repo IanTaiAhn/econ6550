@@ -159,3 +159,10 @@ spike beacuse clicks is correlated to it, it would eat it's effects.
 
 Alright. I honestly have a solvable econometric problem I think. If I can find an exogenous regressor to use as an IV
 for the variable clicks then my model should be less biased.
+
+2SLS machine learning route with feature engineering is a good route to through. We just gotta find an exogenous regressor.
+
+Section 4.2 in the paper shown talks about forecast bias which is a solid thing to follow for my stuff.
+LightWarnickYimPostSecVA_Latest
+
+He told me about this dude named Raj Chetty who is a very famous econometric dude.
