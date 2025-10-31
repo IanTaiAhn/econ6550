@@ -160,9 +160,91 @@ spike beacuse clicks is correlated to it, it would eat it's effects.
 Alright. I honestly have a solvable econometric problem I think. If I can find an exogenous regressor to use as an IV
 for the variable clicks then my model should be less biased.
 
-2SLS machine learning route with feature engineering is a good route to through. We just gotta find an exogenous regressor.
 
+### CHAT WITH PROFESSOR ###
+2SLS machine learning route with feature engineering is a good route to through. We just gotta find an exogenous regressor.
 Section 4.2 in the paper shown talks about forecast bias which is a solid thing to follow for my stuff.
 LightWarnickYimPostSecVA_Latest
 
 He told me about this dude named Raj Chetty who is a very famous econometric dude.
+
+Abstract Guidelines:
+Abstract Guidelines for Business & Economics, Education, Humanities, Sciences, Social Sciences, Technology, Engineering, & Mathematics
+1. Clearly state the central research question and/or purpose of the project. 
+
+2. Provide brief, relevant scholarly or research context (no actual citations required) that demonstrates its attempt to make a unique contribution to the area of inquiry.
+
+3. Provide a brief description of the research methodology.
+
+4. State conclusions or expected results and the context in which they will be discussed. 
+
+5. Include text only (no images or graphics)
+
+6. Be well-written and well-organized.
+
+### Help understanding value-added estimates ###
+
+So what i'm confused about is what is value-added stimation doing for me?
+I get ML feature engineering and using the IV there for 2SLS, but how do I combine value-added estimation for help with forecast bias?
+
+🧠 What Is Value-Added Estimation Really Doing?
+Value-added estimation tries to measure the incremental contribution of an agent (person, policy, ad, etc.) to an outcome, after controlling for everything else. It’s not just about estimating the effect of a variable—it’s about ranking or profiling agents based on their impact.
+
+🔍 In Your Study: Who Are the “Agents”?
+In your ad click dataset, the agents could be:
+
+Ad Types (e.g., Video, Banner, Native)
+Ad Topics (e.g., Travel, Health, Fashion)
+Ad Placements (e.g., Social Media, Search Engine)
+
+You’re not just asking “Do clicks cause conversions?”—you’re asking:
+“Which ad types or placements consistently drive higher conversion rates, after accounting for user behavior and click endogeneity?”
+That’s value-added.
+
+🧪 How It Differs from 2SLS Alone
+2SLS with ML-IVs gives you the causal effect of clicks on conversion rate. But it doesn’t tell you:
+
+Which ad types are better
+Which placements outperform others
+Which combinations are consistently high-performing
+Value-added estimation fills that gap. It lets you say:
+“Video ads on social media have a high value-added—they drive conversions even after controlling for user traits and click bias.”
+“Text ads on websites have low value-added—they underperform relative to expectations.”
+
+🧮 How to Integrate Value-Added Estimation
+Here’s how you’d do it:
+
+🔹 Step 1: Estimate the causal effect of clicks using 2SLS
+Use ML to generate instruments for clicks
+Run 2SLS to get unbiased estimates of how clicks affect conversion
+
+🔹 Step 2: Residualize the outcome
+Predict conversion rate using all controls and predicted clicks
+Compute residuals: what’s left unexplained?
+
+🔹 Step 3: Attribute residuals to agents
+Group residuals by Ad Type, Topic, or Placement
+Average them to get value-added scores
+These scores reflect how much each agent contributes beyond what’s expected
+
+🔹 Optional: Use fixed effects or hierarchical models
+Include agent-level fixed effects in your model
+
+Estimate their coefficients as value-added scores
+
+📊 What You Get
+Agent	Value-Added Score	Interpretation
+Video Ads	+0.012	Boost conversions above baseline
+Text Ads	–0.008	Underperform relative to expectations
+Social Media	+0.015	High-performing placement
+Search Engine	–0.003	Lower-than-expected conversions
+These scores help you optimize ad strategy, allocate budget, and design better campaigns.
+
+✅ Summary
+2SLS tells you: “Clicks cause conversions.”
+
+Value-added estimation tells you: “Which ad formats or placements are best at driving conversions, even after adjusting for click bias and user traits.”
+It’s the difference between estimating a treatment effect and profiling the best performers.
+Want help writing the model code or visualizing the value-added scores?
+
+Agents and combination of agents is possible. Start light and experiment.
