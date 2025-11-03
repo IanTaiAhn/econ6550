@@ -1,0 +1,5 @@
+(1) Collect time series data on at least three variables that you think might be related. (You can find macroeconomics stuff from FRED, or energy stuff from the EIA.) Email me if you are having trouble thinking of a series to use. Plot the data together. 
+Make sure units are comparable or use secondary axes to make it looks good. 
+Perform and interpret Augmented Dickay-Fuller tests on the data, choosing a model based on visual inspection of the data. 
+Estimate a vector autoregression (VAR) using differences and/or levels based on the results of the ADF tests, 
+and produce a forecast using the results of the VAR.
