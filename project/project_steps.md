@@ -26,6 +26,7 @@ Ad Type, Ad Topic, Ad Placement
 User demographics (Age, Gender, Income, Location)
 
 Time features from Click Time (e.g., hour, day of week)
+Use day of week for the time feature.
 
 Use the predicted clicks𝐷^(dhat) as your instrument
 
