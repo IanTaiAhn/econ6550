@@ -171,12 +171,20 @@ He told me about this dude named Raj Chetty who is a very famous econometric dud
 Abstract Guidelines:
 Abstract Guidelines for Business & Economics, Education, Humanities, Sciences, Social Sciences, Technology, Engineering, & Mathematics
 1. Clearly state the central research question and/or purpose of the project. 
+This project aims to investigate how econometric techniques, specificaaly 2SLS with instrument variables will help with the endogenous nature of a selected variable. Further work into how value-added estimation will
+also be conducted in order to find the "agents" that are driving the dependent variable's slope up.
 
 2. Provide brief, relevant scholarly or research context (no actual citations required) that demonstrates its attempt to make a unique contribution to the area of inquiry.
+While 2SLS and IV is a well documented area of econometrics, this study will utilize machine learning techniques to feature engineer a new exogenous regressor that will be used as an instrument in the 2SLS process.
+So this study aims to combine machine learning's feature engineering with econometric's value-added estimates via agents.
 
 3. Provide a brief description of the research methodology.
+There are many papers on 2SLS and IV, and my professor showed me a great research paper explaining the introduction and usage of the value-added estimation technique. This technique was created by Raj Chetty who is 
+a very famous and popular modern day ecnomist.
 
 4. State conclusions or expected results and the context in which they will be discussed. 
+The feature engineered exogenous regressors should get rid of the endogeneity issue when using 2SLS. The main area of interest is how the inference yielded from value-added estimation will turn up.
+Hopefully meaningful inference will be gathered from this and the results will tell which columns or features in the dataset contribute to the selected dependent variable chosen for this study.
 
 5. Include text only (no images or graphics)
 
