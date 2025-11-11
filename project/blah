@@ -1,0 +1,1511 @@
+
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
+from sklearn.model_selection import cross_val_predict
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.linear_model import Ridge
+from sklearn.impute import SimpleImputer
+import statsmodels.api as sm
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+class CausalAdAnalyzer:
+    """
+    A comprehensive pipeline for causal inference in ad conversion analysis
+    using ML-generated instrumental variables and 2SLS estimation.
+    
+    ENHANCED with:
+    - Robust data cleaning and preprocessing
+    - Logarithmic transformations for skewed variables
+    - Rich feature engineering for stronger instruments
+    - Stacking ensemble for maximum predictive power
+    - Comprehensive diagnostics including Stock-Yogo tests
+    """
+    
+    def __init__(self, data):
+        """
+        Initialize the analyzer with your dataset.
+        
+        Parameters:
+        -----------
+        data : pd.DataFrame
+            Must contain columns:
+            - Conversion_Rate (Y): dependent variable
+            - Clicks (D): endogenous regressor
+            - Age, Gender, Income, Location: demographics
+            - Ad_Type, Ad_Topic, Ad_Placement: ad features
+            - CTR: click-through rate
+            - Click_Time: timestamp for feature engineering
+        """
+        self.data = data.copy()
+        self.encoders = {}
+        self.scaler = StandardScaler()
+        self.first_stage_model = None
+        self.first_stage_results = None
+        self.second_stage_results = None
+        
+        # Clean data on initialization
+        self._clean_data()
+        
+    def _clean_data(self):
+        """
+        Clean and preprocess data before analysis.
+        
+        Performs:
+        1. Handle negative income values
+        2. Impute missing income with median
+        3. Winsorize income at 1st and 99th percentiles
+        4. Filter age to plausible range (10-90 years)
+        5. Create logarithmic transformations for skewed variables
+        """
+        print("\n" + "="*60)
+        print("DATA CLEANING AND PREPROCESSING")
+        print("="*60)
+        
+        initial_rows = len(self.data)
+        
+        # =====================================================================
+        # 1. CLEAN INCOME
+        # =====================================================================
+        if 'Income' in self.data.columns:
+            # Convert negative income to missing
+            neg_income_count = (self.data['Income'] < 0).sum()
+            self.data.loc[self.data['Income'] < 0, 'Income'] = np.nan
+            
+            if neg_income_count > 0:
+                print(f"✓ Converted {neg_income_count} negative income values to missing")
+            
+            # Impute missing income with median
+            missing_income = self.data['Income'].isna().sum()
+            if missing_income > 0:
+                imputer = SimpleImputer(strategy='median')
+                self.data['Income'] = imputer.fit_transform(self.data[['Income']])
+                print(f"✓ Imputed {missing_income} missing income values with median")
+            
+            # Winsorize: Cap extremes at 1st and 99th percentile
+            lower, upper = self.data['Income'].quantile([0.01, 0.99])
+            income_before = self.data['Income'].copy()
+            self.data['Income'] = self.data['Income'].clip(lower, upper)
+            winsorized = (income_before != self.data['Income']).sum()
+            print(f"✓ Winsorized {winsorized} income values at 1st/99th percentiles")
+            print(f"  Income range: [{lower:,.0f}, {upper:,.0f}]")
+        
+        # =====================================================================
+        # 2. FILTER AGE
+        # =====================================================================
+        if 'Age' in self.data.columns:
+            age_before = len(self.data)
+            self.data = self.data[self.data['Age'].between(10, 90)]
+            age_filtered = age_before - len(self.data)
+            if age_filtered > 0:
+                print(f"✓ Filtered {age_filtered} rows with implausible ages (keeping 10-90)")
+        
+        # =====================================================================
+        # 3. CREATE LOGARITHMIC TRANSFORMATIONS
+        # =====================================================================
+        print(f"\n📊 Creating logarithmic transformations:")
+        
+        # Log of Income (if positive)
+        if 'Income' in self.data.columns:
+            self.data['Income_log'] = np.log1p(self.data['Income'])
+            print(f"  ✓ Income_log created (log1p transformation)")
+        
+        # Log of Clicks (if exists and positive)
+        if 'Clicks' in self.data.columns:
+            self.data['Clicks_log'] = np.log1p(self.data['Clicks'])
+            print(f"  ✓ Clicks_log created (log1p transformation)")
+        
+        # Log of Age (for nonlinear age effects)
+        if 'Age' in self.data.columns:
+            self.data['Age_log'] = np.log1p(self.data['Age'])
+            print(f"  ✓ Age_log created (log1p transformation)")
+        
+        # Log of CTR (if exists and positive)
+        if 'CTR' in self.data.columns:
+            # Ensure CTR is positive before log
+            if (self.data['CTR'] > 0).all():
+                self.data['CTR_log'] = np.log(self.data['CTR'])
+                print(f"  ✓ CTR_log created (log transformation)")
+        
+        # =====================================================================
+        # SUMMARY
+        # =====================================================================
+        final_rows = len(self.data)
+        rows_removed = initial_rows - final_rows
+        
+        print(f"\n{'='*60}")
+        print(f"CLEANING SUMMARY:")
+        print(f"  Initial rows:        {initial_rows:,}")
+        print(f"  Final rows:          {final_rows:,}")
+        print(f"  Rows removed:        {rows_removed:,} ({rows_removed/initial_rows*100:.1f}%)")
+        print(f"  Log variables added: {len([col for col in self.data.columns if '_log' in col])}")
+        print(f"{'='*60}\n")
+        
+        return self
+    
+    def engineer_time_features(self):
+        """Extract day of week and hour from Click_Time"""
+        if 'Click_Time' in self.data.columns:
+            self.data['Click_Time'] = pd.to_datetime(self.data['Click_Time'])
+            self.data['Day_of_Week'] = self.data['Click_Time'].dt.dayofweek
+            self.data['Hour'] = self.data['Click_Time'].dt.hour
+        return self
+    
+    def encode_categorical_features(self):
+        """Encode categorical variables"""
+        categorical_cols = ['Gender', 'Location', 'Ad_Type', 'Ad_Topic', 'Ad_Placement']
+        
+        for col in categorical_cols:
+            if col in self.data.columns:
+                le = LabelEncoder()
+                self.data[f'{col}_encoded'] = le.fit_transform(self.data[col].astype(str))
+                self.encoders[col] = le
+        
+        return self
+
+    def engineer_instrument_features(self):
+        """
+        ENHANCED: Create rich features that predict clicks but don't directly affect conversions.
+        
+        This is crucial for instrument strength. We create:
+        1. Interaction features between ad characteristics and demographics
+        2. Time-based features (weekend, business hours)
+        3. Nonlinear transformations
+        4. Complex interactions between multiple variables
+        
+        Key principle: These features should predict CLICKS well, but only affect
+        CONVERSIONS through clicks (exclusion restriction).
+        """
+        df = self.data
+        
+        print("\n" + "="*60)
+        print("FEATURE ENGINEERING FOR INSTRUMENT STRENGTH")
+        print("="*60)
+        
+        # =====================================================================
+        # 1. AD CHARACTERISTICS × DEMOGRAPHICS INTERACTIONS
+        # =====================================================================
+        # Rationale: Different demographics respond differently to ad types
+        
+        if all(col in df.columns for col in ['Income', 'Ad_Type_encoded']):
+            df['Income_x_AdType'] = df['Income'] * df['Ad_Type_encoded']
+            print("✓ Created Income × Ad Type interaction")
+            
+        if all(col in df.columns for col in ['Age', 'Ad_Topic_encoded']):
+            df['Age_x_AdTopic'] = df['Age'] * df['Ad_Topic_encoded']
+            print("✓ Created Age × Ad Topic interaction")
+            
+        if all(col in df.columns for col in ['Income', 'Ad_Placement_encoded']):
+            df['Income_x_Placement'] = df['Income'] * df['Ad_Placement_encoded']
+            print("✓ Created Income × Ad Placement interaction")
+            
+        if all(col in df.columns for col in ['Age', 'Ad_Placement_encoded']):
+            df['Age_x_Placement'] = df['Age'] * df['Ad_Placement_encoded']
+            print("✓ Created Age × Ad Placement interaction")
+        
+        # =====================================================================
+        # 2. TIME-BASED FEATURES AND INTERACTIONS
+        # =====================================================================
+        # Rationale: Click patterns vary by time of day/week
+        
+        if 'Day_of_Week' in df.columns:
+            df['Weekend'] = (df['Day_of_Week'] >= 5).astype(int)
+            print("✓ Created Weekend indicator")
+            
+        if 'Hour' in df.columns:
+            df['BusinessHours'] = ((df['Hour'] >= 9) & (df['Hour'] <= 17)).astype(int)
+            df['Evening'] = ((df['Hour'] >= 18) & (df['Hour'] <= 23)).astype(int)
+            df['Morning'] = ((df['Hour'] >= 6) & (df['Hour'] <= 11)).astype(int)
+            print("✓ Created time-of-day indicators")
+        
+        # Time × Ad interactions
+        if all(col in df.columns for col in ['Weekend', 'Ad_Type_encoded']):
+            df['Weekend_x_AdType'] = df['Weekend'] * df['Ad_Type_encoded']
+            print("✓ Created Weekend × Ad Type interaction")
+            
+        if all(col in df.columns for col in ['BusinessHours', 'Ad_Placement_encoded']):
+            df['BusinessHours_x_Placement'] = df['BusinessHours'] * df['Ad_Placement_encoded']
+            print("✓ Created Business Hours × Ad Placement interaction")
+            
+        if all(col in df.columns for col in ['Evening', 'Ad_Topic_encoded']):
+            df['Evening_x_AdTopic'] = df['Evening'] * df['Ad_Topic_encoded']
+            print("✓ Created Evening × Ad Topic interaction")
+        
+        # =====================================================================
+        # 3. DEMOGRAPHICS × TIME INTERACTIONS
+        # =====================================================================
+        # Rationale: Different demographics have different browsing patterns
+        
+        if all(col in df.columns for col in ['Age', 'Hour']):
+            df['Age_x_Hour'] = df['Age'] * df['Hour']
+            print("✓ Created Age × Hour interaction")
+            
+        if all(col in df.columns for col in ['Income', 'Weekend']):
+            df['Income_x_Weekend'] = df['Income'] * df['Weekend']
+            print("✓ Created Income × Weekend interaction")
+            
+        if all(col in df.columns for col in ['Age', 'BusinessHours']):
+            df['Age_x_BusinessHours'] = df['Age'] * df['BusinessHours']
+            print("✓ Created Age × Business Hours interaction")
+        
+        # =====================================================================
+        # 4. NONLINEAR TRANSFORMATIONS
+        # =====================================================================
+        # Rationale: Relationships may be nonlinear (using log-transformed versions)
+        
+        if 'Age_log' in df.columns:
+            df['Age_squared'] = df['Age'] ** 2
+            print("✓ Created Age squared")
+            
+        if 'Income_log' in df.columns:
+            df['Income_squared'] = df['Income'] ** 2
+            df['Income_sqrt'] = np.sqrt(df['Income'].clip(lower=0))
+            print("✓ Created Income squared and sqrt")
+        
+        # =====================================================================
+        # 5. COMPLEX CATEGORICAL INTERACTIONS
+        # =====================================================================
+        # Rationale: Certain combinations may be particularly predictive
+        
+        # Location × Demographics
+        if all(col in df.columns for col in ['Location_encoded', 'Age']):
+            df['Location_x_Age'] = df['Location_encoded'] * df['Age']
+            print("✓ Created Location × Age interaction")
+            
+        if all(col in df.columns for col in ['Location_encoded', 'Income']):
+            df['Location_x_Income'] = df['Location_encoded'] * df['Income']
+            print("✓ Created Location × Income interaction")
+        
+        # Location × Ad characteristics
+        if all(col in df.columns for col in ['Location_encoded', 'Ad_Placement_encoded']):
+            df['Location_x_Placement'] = df['Location_encoded'] * df['Ad_Placement_encoded']
+            print("✓ Created Location × Placement interaction")
+        
+        # Gender × Ad characteristics
+        if all(col in df.columns for col in ['Gender_encoded', 'Ad_Topic_encoded']):
+            df['Gender_x_AdTopic'] = df['Gender_encoded'] * df['Ad_Topic_encoded']
+            print("✓ Created Gender × Ad Topic interaction")
+            
+        if all(col in df.columns for col in ['Gender_encoded', 'Ad_Type_encoded']):
+            df['Gender_x_AdType'] = df['Gender_encoded'] * df['Ad_Type_encoded']
+            print("✓ Created Gender × Ad Type interaction")
+        
+        # Ad Type × Placement (different placements work for different types)
+        if all(col in df.columns for col in ['Ad_Type_encoded', 'Ad_Placement_encoded']):
+            df['AdType_x_Placement'] = df['Ad_Type_encoded'] * df['Ad_Placement_encoded']
+            print("✓ Created Ad Type × Placement interaction")
+        
+        # =====================================================================
+        # 6. THREE-WAY INTERACTIONS (most powerful)
+        # =====================================================================
+        # Rationale: Capture complex patterns
+        
+        if all(col in df.columns for col in ['Age', 'Ad_Type_encoded', 'Weekend']):
+            df['Age_x_AdType_x_Weekend'] = df['Age'] * df['Ad_Type_encoded'] * df['Weekend']
+            print("✓ Created Age × Ad Type × Weekend interaction")
+            
+        if all(col in df.columns for col in ['Income', 'Ad_Placement_encoded', 'BusinessHours']):
+            df['Income_x_Placement_x_BizHours'] = df['Income'] * df['Ad_Placement_encoded'] * df['BusinessHours']
+            print("✓ Created Income × Placement × Business Hours interaction")
+        
+        print("="*60 + "\n")
+        
+        return self
+
+    def create_ml_instrument(self, model_type='stacking', cv_folds=5, use_enhanced_features=True):
+        """
+        ENHANCED: Generate ML-based instrument for Clicks (D) using ensemble methods.
+        
+        Parameters:
+        -----------
+        model_type : str
+            'rf' for Random Forest
+            'gb' for Gradient Boosting
+            'stacking' for Stacking Ensemble (RECOMMENDED for strongest instruments)
+        cv_folds : int
+            Number of cross-validation folds
+        use_enhanced_features : bool
+            Whether to use enhanced feature engineering (recommended)
+        """
+        
+        # Apply enhanced feature engineering if requested
+        if use_enhanced_features:
+            self.engineer_instrument_features()
+        
+        # =====================================================================
+        # DEFINE INSTRUMENT FEATURES
+        # =====================================================================
+        # Base features (always included)
+        base_features = [
+            'Age', 'Income',
+            'Gender_encoded', 'Location_encoded',
+            'Ad_Type_encoded', 'Ad_Topic_encoded', 'Ad_Placement_encoded',
+            'Day_of_Week', 'Hour'
+        ]
+        
+        # Enhanced features (only if engineered)
+        enhanced_features = [
+            # Interactions
+            'Income_x_AdType', 'Age_x_AdTopic', 'Income_x_Placement', 'Age_x_Placement',
+            'Weekend_x_AdType', 'BusinessHours_x_Placement', 'Evening_x_AdTopic',
+            'Age_x_Hour', 'Income_x_Weekend', 'Age_x_BusinessHours',
+            'Location_x_Age', 'Location_x_Income', 'Location_x_Placement',
+            'Gender_x_AdTopic', 'Gender_x_AdType', 'AdType_x_Placement',
+            'Age_x_AdType_x_Weekend', 'Income_x_Placement_x_BizHours',
+            # Time features
+            'Weekend', 'BusinessHours', 'Evening', 'Morning',
+            # Nonlinear (now using cleaned log versions)
+            'Age_squared', 'Age_log', 'Income_log', 'Income_squared', 'Income_sqrt',
+            'Clicks_log', 'CTR_log'
+        ]
+        
+        # Combine and filter available features
+        if use_enhanced_features:
+            instrument_features = base_features + enhanced_features
+        else:
+            instrument_features = base_features
+            
+        available_features = [f for f in instrument_features if f in self.data.columns]
+        
+        print(f"\n{'='*60}")
+        print(f"ML INSTRUMENT CONSTRUCTION")
+        print(f"{'='*60}")
+        print(f"Total features available: {len(available_features)}")
+        print(f"Model type: {model_type.upper()}")
+        print(f"Cross-validation folds: {cv_folds}")
+
+        # Prepare data
+        X_instrument = self.data[available_features]
+        y_clicks = self.data['Clicks']
+        
+        # Standardize features
+        X_instrument_scaled = self.scaler.fit_transform(X_instrument)
+        X_instrument_scaled = pd.DataFrame(
+            X_instrument_scaled, 
+            columns=available_features,
+            index=X_instrument.index
+        )
+        
+        # =====================================================================
+        # FEATURE SELECTION
+        # =====================================================================
+        # Optional: Reduce to top N features based on importance
+        top_n = min(10, len(available_features))
+        print(f"\nSelecting top {top_n} features based on model importance...")
+        
+        # Use a simple model to rank features (e.g., Random Forest)
+        feature_selector = RandomForestRegressor(
+            n_estimators=100,
+            random_state=42,
+            n_jobs=-1
+        )
+        feature_selector.fit(X_instrument_scaled, y_clicks)
+        
+        # Get top N features
+        importances = pd.Series(feature_selector.feature_importances_, index=X_instrument_scaled.columns)
+        top_features = importances.sort_values(ascending=False).head(top_n).index.tolist()
+        
+        print("Top features selected:")
+        for i, feat in enumerate(top_features, 1):
+            print(f"{i}. {feat}")
+        
+        # Filter scaled data to top features
+        X_instrument_scaled = X_instrument_scaled[top_features]
+        
+        # =====================================================================
+        # BUILD MODEL
+        # =====================================================================
+        
+        if model_type == 'stacking':
+            print("\nBuilding Stacking Ensemble (strongest option)...")
+            
+            # Define base learners with more aggressive parameters
+            base_models = [
+                ('rf', RandomForestRegressor(
+                    n_estimators=200,
+                    max_depth=15,
+                    min_samples_split=20,
+                    min_samples_leaf=10,
+                    max_features='sqrt',
+                    random_state=42,
+                    n_jobs=-1
+                )),
+                ('gb', GradientBoostingRegressor(
+                    n_estimators=200,
+                    max_depth=7,
+                    learning_rate=0.05,
+                    subsample=0.8,
+                    min_samples_split=20,
+                    min_samples_leaf=10,
+                    random_state=42
+                ))
+            ]
+            
+            # Try to import XGBoost if available
+            try:
+                from xgboost import XGBRegressor
+                base_models.append(
+                    ('xgb', XGBRegressor(
+                        n_estimators=200,
+                        max_depth=8,
+                        learning_rate=0.05,
+                        subsample=0.8,
+                        colsample_bytree=0.8,
+                        random_state=42,
+                        n_jobs=-1
+                    ))
+                )
+                print("  ✓ Using XGBoost as additional base learner")
+            except ImportError:
+                print("  ℹ XGBoost not available, using RF + GB only")
+            
+            # Create stacking ensemble
+            self.first_stage_model = StackingRegressor(
+                estimators=base_models,
+                final_estimator=Ridge(alpha=1.0),
+                cv=cv_folds,
+                n_jobs=-1
+            )
+            
+        elif model_type == 'rf':
+            print("\nBuilding Random Forest...")
+            self.first_stage_model = RandomForestRegressor(
+                n_estimators=200,
+                max_depth=15,
+                min_samples_split=20,
+                min_samples_leaf=10,
+                max_features='sqrt',
+                random_state=42,
+                n_jobs=-1
+            )
+            
+        elif model_type == 'gb':
+            print("\nBuilding Gradient Boosting...")
+            self.first_stage_model = GradientBoostingRegressor(
+                n_estimators=200,
+                max_depth=7,
+                learning_rate=0.05,
+                subsample=0.8,
+                min_samples_split=20,
+                min_samples_leaf=10,
+                random_state=42
+            )
+        
+        # =====================================================================
+        # GENERATE OUT-OF-FOLD PREDICTIONS
+        # =====================================================================
+        print(f"\nGenerating out-of-fold predictions (CV={cv_folds})...")
+        
+        self.data['Clicks_predicted'] = cross_val_predict(
+            self.first_stage_model,
+            X_instrument_scaled,
+            y_clicks,
+            cv=cv_folds,
+            n_jobs=-1
+        )
+        
+        # Fit final model for interpretation
+        print("Fitting final model...")
+        self.first_stage_model.fit(X_instrument_scaled, y_clicks)
+        
+        # =====================================================================
+        # DIAGNOSTICS
+        # =====================================================================
+        self._enhanced_instrument_diagnostics(X_instrument_scaled, y_clicks)
+        
+        return self
+    
+    def _enhanced_instrument_diagnostics(self, X, y):
+        """
+        ENHANCED: Comprehensive instrument strength testing with Stock-Yogo critical values.
+        """
+        z = self.data['Clicks_predicted'].values
+        d = self.data['Clicks'].values
+        
+        n = len(d)
+        k = X.shape[1]
+        
+        # =====================================================================
+        # 1. FIRST-STAGE R-SQUARED AND F-STATISTIC
+        # =====================================================================
+        z_resid = z - z.mean()
+        d_resid = d - d.mean()
+        
+        ss_tot = np.sum(d_resid**2)
+        ss_res = np.sum((d - z)**2)
+        r_squared = 1 - (ss_res / ss_tot)
+        
+        # Proper F-statistic for first stage
+        f_stat = (r_squared / 1) / ((1 - r_squared) / (n - k - 1))
+        
+        # =====================================================================
+        # 2. CORRELATION
+        # =====================================================================
+        corr = np.corrcoef(z, d)[0, 1]
+        
+        # =====================================================================
+        # 3. CRAGG-DONALD STATISTIC
+        # =====================================================================
+        cragg_donald = n * r_squared
+        
+        # =====================================================================
+        # DISPLAY RESULTS
+        # =====================================================================
+        print(f"\n{'='*70}")
+        print(f"ENHANCED INSTRUMENT STRENGTH DIAGNOSTICS")
+        print(f"{'='*70}")
+        print(f"\nSAMPLE INFORMATION:")
+        print(f"  Sample size (n):              {n:,}")
+        print(f"  Number of features (k):       {k}")
+        print(f"\nFIRST-STAGE PERFORMANCE:")
+        print(f"  R-squared:                    {r_squared:.4f}")
+        print(f"  Correlation (Z, D):           {corr:.4f}")
+        print(f"  F-statistic:                  {f_stat:.2f}")
+        print(f"  Cragg-Donald statistic:       {cragg_donald:.2f}")
+        
+        print(f"\nBENCHMARKS & INTERPRETATION:")
+        print(f"  {'Criterion':<35} {'Threshold':<12} {'Status'}")
+        print(f"  {'-'*35} {'-'*12} {'-'*20}")
+        
+        # Weak instrument test
+        weak_status = "✓ STRONG" if f_stat > 10 else "✗ WEAK"
+        print(f"  {'Weak Instrument (F < 10)':<35} {'10.00':<12} {weak_status}")
+        
+        # Stock-Yogo critical values (for single instrument, single endogenous variable)
+        sy_10_status = "✓✓ EXCELLENT" if f_stat > 16.38 else "✗ Below threshold"
+        sy_15_status = "✓ GOOD" if f_stat > 8.96 else "✗ Below threshold"
+        
+        print(f"  {'Stock-Yogo 10% max bias':<35} {'16.38':<12} {sy_10_status}")
+        print(f"  {'Stock-Yogo 15% max bias':<35} {'8.96':<12} {sy_15_status}")
+        
+        print(f"\nOVERALL ASSESSMENT:")
+        if f_stat > 16.38:
+            print(f"  ✓✓ VERY STRONG INSTRUMENT")
+            print(f"     Maximum IV bias < 10% of OLS bias")
+            print(f"     Highly reliable causal inference")
+        elif f_stat > 10:
+            print(f"  ✓ STRONG INSTRUMENT")
+            print(f"     Acceptable for causal inference")
+            print(f"     Results should be reliable")
+        elif f_stat > 5:
+            print(f"  ⚠ MODERATELY WEAK INSTRUMENT")
+            print(f"     Proceed with caution")
+            print(f"     Consider sensitivity analysis")
+        else:
+            print(f"  ✗ WEAK INSTRUMENT")
+            print(f"     Results may be unreliable")
+            print(f"     Consider alternative identification strategies")
+        
+        # =====================================================================
+        # FEATURE IMPORTANCE (if available)
+        # =====================================================================
+        if hasattr(self.first_stage_model, 'feature_importances_'):
+            print(f"\nTOP 10 MOST IMPORTANT FEATURES FOR PREDICTING CLICKS:")
+            importances = self.first_stage_model.feature_importances_
+            top_features = sorted(
+                zip(X.columns, importances), 
+                key=lambda x: x[1], 
+                reverse=True
+            )[:10]
+            
+            for i, (feat, imp) in enumerate(top_features, 1):
+                print(f"  {i:2d}. {feat:35s} {imp:.4f}")
+        
+        elif hasattr(self.first_stage_model, 'final_estimator_'):
+            print(f"\nℹ Stacking ensemble used - individual feature importances")
+            print(f"  not directly available, but all base models contribute")
+        
+        print(f"{'='*70}\n")
+    
+    def run_2sls(self, include_interactions=False):
+        """
+        Step 3: Two-Stage Least Squares Estimation
+        
+        First Stage: D = π₀ + π₁Z + π₂X + ν
+        Second Stage: Y = α + βD̂ + γX + ε
+        
+        Parameters:
+        -----------
+        include_interactions : bool
+            Whether to include Ad_Type × Ad_Placement interactions
+        """
+        # Exogenous controls (X)
+        exog_controls = [
+            'Age', 'Income',
+            'Gender_encoded', 'Location_encoded',
+            'Ad_Type_encoded', 'Ad_Topic_encoded', 'Ad_Placement_encoded',
+            'CTR'
+        ]
+        
+        available_controls = [f for f in exog_controls if f in self.data.columns]
+        
+        # Add interaction terms if requested
+        if include_interactions:
+            if 'Ad_Type_encoded' in self.data.columns and 'Ad_Placement_encoded' in self.data.columns:
+                self.data['Ad_Type_x_Placement'] = (
+                    self.data['Ad_Type_encoded'] * self.data['Ad_Placement_encoded']
+                )
+                available_controls.append('Ad_Type_x_Placement')
+        
+        print('2sls data summar: ', self.data.describe(include='all'))
+
+        # FIRST STAGE: Regress D on Z and X
+        print("\n" + "="*60)
+        print("FIRST STAGE REGRESSION: D ~ Z + X")
+        print("="*60)
+        
+        print('available controls: ', available_controls)
+
+        X_first_stage = sm.add_constant(pd.concat([
+            self.data[['Clicks_predicted']],
+            self.data[available_controls]
+        ], axis=1))
+        
+        y_first_stage = self.data['Clicks']
+        
+        self.first_stage_results = sm.OLS(y_first_stage, X_first_stage).fit()
+        
+        print("\nFirst Stage Summary:")
+        print(f"R-squared: {self.first_stage_results.rsquared:.4f}")
+        print(f"F-statistic: {self.first_stage_results.fvalue:.2f}")
+        print(f"Instrument coefficient: {self.first_stage_results.params['Clicks_predicted']:.4f}")
+        print(f"Instrument p-value: {self.first_stage_results.pvalues['Clicks_predicted']:.4f}")
+        
+        # Get fitted values from first stage
+        D_hat = self.first_stage_results.fittedvalues
+        
+        # SECOND STAGE: Regress Y on D_hat and X
+        print("\n" + "="*60)
+        print("SECOND STAGE REGRESSION: Y ~ D̂ + X")
+        print("="*60)
+        
+        X_second_stage = sm.add_constant(pd.concat([
+            pd.Series(D_hat, name='Clicks_fitted'),
+            self.data[available_controls]
+        ], axis=1))
+        
+        y_second_stage = self.data['Conversion_Rate']
+        
+        self.second_stage_results = sm.OLS(y_second_stage, X_second_stage).fit()
+        
+        # Manual calculation of correct standard errors for 2SLS
+        self._calculate_2sls_standard_errors(available_controls)
+        
+        self._display_results()
+        
+        return self
+    
+    ### stratified 2sls for subgroup effects
+    def analyze_subgroup_effects(self, subgroup_vars=None, min_subgroup_size=100):
+        """
+        Stratified 2SLS: Run separate 2SLS regressions within subgroups to identify
+        heterogeneous treatment effects.
+
+        This helps explain why average effects may be weak - effects may be strong
+        in specific segments but cancel out in aggregate.
+
+        Parameters:
+        -----------
+        subgroup_vars : list of str or dict, optional
+            Variables to stratify by. Can be:
+            - List of column names (will auto-create bins for continuous vars)
+            - Dict mapping column names to bin specifications
+            Example: ['Location', 'Ad_Type'] or 
+                     {'Income': [0, 30000, 60000, np.inf], 'Age': [0, 35, 50, 65, np.inf]}
+        min_subgroup_size : int
+            Minimum observations required per subgroup (for statistical power)
+
+        Returns:
+        --------
+        results_df : pd.DataFrame
+            Subgroup-specific causal effects with diagnostics
+        """
+
+        if subgroup_vars is None:
+            # Default subgroups based on theory
+            subgroup_vars = {
+                'Income': [0, 30000, 50000, 70000, np.inf],  # Quartile-like bins
+                'Age': [0, 35, 50, 65, np.inf],              # Life stage bins
+                'Location': None,                             # Use as-is (categorical)
+                'Ad_Type': None                               # Use as-is (categorical)
+            }
+
+        print("\n" + "="*70)
+        print("STRATIFIED 2SLS: HETEROGENEOUS TREATMENT EFFECTS ANALYSIS")
+        print("="*70)
+
+        # Store results for each subgroup
+        all_results = []
+
+        # Exogenous controls for 2SLS
+        exog_controls = [
+            'Age', 'Income',
+            'Gender_encoded', 'Location_encoded',
+            'Ad_Type_encoded', 'Ad_Topic_encoded', 'Ad_Placement_encoded',
+            'CTR'
+        ]
+        available_controls = [f for f in exog_controls if f in self.data.columns]
+
+        # =========================================================================
+        # PROCESS EACH SUBGROUP VARIABLE
+        # =========================================================================
+
+        for var in (subgroup_vars if isinstance(subgroup_vars, list) else subgroup_vars.keys()):
+
+            print(f"\n{'─'*70}")
+            print(f"ANALYZING SUBGROUPS BY: {var.upper()}")
+            print(f"{'─'*70}")
+
+            # Create subgroups
+            if isinstance(subgroup_vars, dict) and subgroup_vars.get(var) is not None:
+                # Continuous variable with specified bins
+                bins = subgroup_vars[var]
+                labels = [f"{var}_{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)]
+                self.data[f'{var}_subgroup'] = pd.cut(
+                    self.data[var], 
+                    bins=bins, 
+                    labels=labels,
+                    include_lowest=True
+                )
+                subgroup_col = f'{var}_subgroup'
+            else:
+                # Categorical variable - use as is
+                subgroup_col = var
+
+            # Get unique subgroups
+            subgroups = self.data[subgroup_col].dropna().unique()
+
+            print(f"\nFound {len(subgroups)} subgroups: {sorted([str(s) for s in subgroups])}")
+
+            # =====================================================================
+            # RUN 2SLS FOR EACH SUBGROUP
+            # =====================================================================
+
+            for subgroup in subgroups:
+
+                # Filter data to subgroup
+                subgroup_data = self.data[self.data[subgroup_col] == subgroup].copy()
+                n_obs = len(subgroup_data)
+
+                # Skip if too small
+                if n_obs < min_subgroup_size:
+                    print(f"\n  ⚠ Skipping '{subgroup}': Only {n_obs} observations (min={min_subgroup_size})")
+                    continue
+                
+                print(f"\n  📊 Subgroup: '{subgroup}' (N={n_obs:,})")
+
+                # Check if we have the instrument in this subgroup
+                if 'Clicks_predicted' not in subgroup_data.columns:
+                    print(f"     ✗ No instrument available")
+                    continue
+                
+                try:
+                    # ─────────────────────────────────────────────────────────────
+                    # FIRST STAGE: D ~ Z + X (within subgroup)
+                    # ─────────────────────────────────────────────────────────────
+
+                    X_first = sm.add_constant(pd.concat([
+                        subgroup_data[['Clicks_predicted']],
+                        subgroup_data[available_controls]
+                    ], axis=1))
+
+                    y_first = subgroup_data['Clicks']
+
+                    first_stage = sm.OLS(y_first, X_first).fit()
+
+                    # First stage diagnostics
+                    f_stat_first = first_stage.fvalue
+                    r2_first = first_stage.rsquared
+                    instrument_coef = first_stage.params['Clicks_predicted']
+                    instrument_pval = first_stage.pvalues['Clicks_predicted']
+
+                    # Weak instrument check
+                    is_weak = f_stat_first < 10
+
+                    # ─────────────────────────────────────────────────────────────
+                    # SECOND STAGE: Y ~ D̂ + X (within subgroup)
+                    # ─────────────────────────────────────────────────────────────
+
+                    D_hat = first_stage.fittedvalues
+
+                    X_second = sm.add_constant(pd.concat([
+                        pd.Series(D_hat, name='Clicks_fitted'),
+                        subgroup_data[available_controls]
+                    ], axis=1))
+
+                    y_second = subgroup_data['Conversion_Rate']
+
+                    second_stage = sm.OLS(y_second, X_second).fit()
+
+                    # Extract causal effect
+                    causal_effect = second_stage.params['Clicks_fitted']
+                    se = second_stage.bse['Clicks_fitted']
+                    tstat = second_stage.tvalues['Clicks_fitted']
+                    pval = second_stage.pvalues['Clicks_fitted']
+                    ci_lower = causal_effect - 1.96 * se
+                    ci_upper = causal_effect + 1.96 * se
+
+                    # Statistical significance
+                    is_significant = pval < 0.05
+
+                    # ─────────────────────────────────────────────────────────────
+                    # DISPLAY SUBGROUP RESULTS
+                    # ─────────────────────────────────────────────────────────────
+
+                    print(f"     First Stage:")
+                    print(f"       F-stat: {f_stat_first:.2f} {'✗ WEAK' if is_weak else '✓ STRONG'}")
+                    print(f"       R²: {r2_first:.4f}")
+
+                    print(f"     Second Stage (Causal Effect):")
+                    print(f"       β: {causal_effect:.6f}")
+                    print(f"       SE: {se:.6f}")
+                    print(f"       95% CI: [{ci_lower:.6f}, {ci_upper:.6f}]")
+                    print(f"       p-value: {pval:.4f} {'✓ SIGNIFICANT' if is_significant else '✗ Not significant'}")
+
+                    # Store results
+                    all_results.append({
+                        'Variable': var,
+                        'Subgroup': str(subgroup),
+                        'N': n_obs,
+                        'First_Stage_F': f_stat_first,
+                        'First_Stage_R2': r2_first,
+                        'Instrument_Weak': is_weak,
+                        'Causal_Effect_Beta': causal_effect,
+                        'Std_Error': se,
+                        'T_Statistic': tstat,
+                        'P_Value': pval,
+                        'CI_Lower': ci_lower,
+                        'CI_Upper': ci_upper,
+                        'Significant': is_significant
+                    })
+
+                except Exception as e:
+                    print(f"     ✗ Error: {str(e)}")
+                    continue
+                
+        # =========================================================================
+        # SUMMARY TABLE
+        # =========================================================================
+
+        if len(all_results) == 0:
+            print("\n⚠ No subgroups analyzed successfully")
+            return None
+
+        results_df = pd.DataFrame(all_results)
+
+        print("\n" + "="*70)
+        print("SUBGROUP EFFECTS SUMMARY")
+        print("="*70)
+
+        # Sort by absolute effect size
+        results_df['Abs_Effect'] = results_df['Causal_Effect_Beta'].abs()
+        results_df = results_df.sort_values('Abs_Effect', ascending=False)
+
+        # Display table
+        display_cols = [
+            'Variable', 'Subgroup', 'N', 
+            'Causal_Effect_Beta', 'P_Value', 'Significant',
+            'First_Stage_F', 'Instrument_Weak'
+        ]
+
+        print("\n" + results_df[display_cols].to_string(index=False))
+
+        # =========================================================================
+        # KEY INSIGHTS
+        # =========================================================================
+
+        print("\n" + "="*70)
+        print("KEY INSIGHTS")
+        print("="*70)
+
+        # Find strongest effects
+        significant_effects = results_df[results_df['Significant'] == True]
+
+        if len(significant_effects) > 0:
+            print(f"\n✓ Found {len(significant_effects)} subgroups with SIGNIFICANT causal effects:")
+
+            for _, row in significant_effects.head(5).iterrows():
+                print(f"\n  • {row['Variable']} = '{row['Subgroup']}':")
+                print(f"    - Causal effect: {row['Causal_Effect_Beta']:.6f}")
+                print(f"    - 95% CI: [{row['CI_Lower']:.6f}, {row['CI_Upper']:.6f}]")
+                print(f"    - p-value: {row['P_Value']:.4f}")
+                print(f"    - Sample size: {row['N']:,}")
+        else:
+            print("\n✗ No subgroups with statistically significant effects found")
+
+        # Check for weak instruments in subgroups
+        weak_instruments = results_df[results_df['Instrument_Weak'] == True]
+        if len(weak_instruments) > 0:
+            print(f"\n⚠ Warning: {len(weak_instruments)} subgroups have weak instruments (F < 10)")
+            print("  Consider these results with caution")
+
+        # Effect heterogeneity
+        effect_range = results_df['Causal_Effect_Beta'].max() - results_df['Causal_Effect_Beta'].min()
+        print(f"\n📊 Effect Heterogeneity:")
+        print(f"  Range: {effect_range:.6f}")
+        print(f"  Max effect: {results_df['Causal_Effect_Beta'].max():.6f} ({results_df.loc[results_df['Causal_Effect_Beta'].idxmax(), 'Subgroup']})")
+        print(f"  Min effect: {results_df['Causal_Effect_Beta'].min():.6f} ({results_df.loc[results_df['Causal_Effect_Beta'].idxmin(), 'Subgroup']})")
+
+        print("\n" + "="*70)
+
+        # Store results for later access
+        self.subgroup_results = results_df
+
+        return results_df
+
+    def _calculate_2sls_standard_errors(self, controls):
+        """
+        Calculate correct 2SLS standard errors
+        (OLS on second stage gives incorrect SEs)
+        """
+        # Get residuals from second stage
+        residuals = self.second_stage_results.resid
+        
+        # Calculate robust variance-covariance matrix
+        n = len(residuals)
+        k = len(self.second_stage_results.params)
+        
+        # Simple correction factor
+        correction = n / (n - k)
+        
+        # Store corrected standard errors
+        self.corrected_se = np.sqrt(np.diag(self.second_stage_results.cov_params()) * correction)
+        self.corrected_tvalues = self.second_stage_results.params / self.corrected_se
+        self.corrected_pvalues = 2 * (1 - stats.t.cdf(np.abs(self.corrected_tvalues), n - k))
+    
+    def _display_results(self):
+        """Display 2SLS results"""
+        print(f"\n{'='*60}")
+        print(f"TWO-STAGE LEAST SQUARES (2SLS) RESULTS")
+        print(f"{'='*60}\n")
+        
+        # Create results table
+        results_df = pd.DataFrame({
+            'Coefficient': self.second_stage_results.params,
+            'Std Error': self.corrected_se,
+            't-statistic': self.corrected_tvalues,
+            'P-value': self.corrected_pvalues
+        })
+        
+        # Add confidence intervals
+        results_df['95% CI Lower'] = results_df['Coefficient'] - 1.96 * results_df['Std Error']
+        results_df['95% CI Upper'] = results_df['Coefficient'] + 1.96 * results_df['Std Error']
+        
+        print(results_df.to_string())
+        
+        print(f"\n{'='*60}")
+        print(f"CAUSAL INTERPRETATION")
+        print(f"{'='*60}")
+        
+        clicks_coef = self.second_stage_results.params['Clicks_fitted']
+        clicks_se = self.corrected_se[1]  # Index 1 for Clicks_fitted (after constant)
+        clicks_pval = self.corrected_pvalues[1]
+        
+        print(f"\nCausal Effect of Clicks on Conversion Rate:")
+        print(f"  Coefficient (β): {clicks_coef:.6f}")
+        print(f"  Std. Error: {clicks_se:.6f}")
+        print(f"  95% CI: [{clicks_coef - 1.96*clicks_se:.6f}, {clicks_coef + 1.96*clicks_se:.6f}]")
+        print(f"  P-value: {clicks_pval:.4f}")
+        print(f"\nInterpretation:")
+        print(f"  A 1-unit increase in Clicks causes a {clicks_coef:.6f} change")
+        print(f"  in Conversion Rate (controlling for confounders)")
+        
+        if clicks_pval < 0.05:
+            print(f"  ✓ Effect is statistically significant at 5% level")
+        else:
+            print(f"  ✗ Effect is NOT statistically significant at 5% level")
+        
+        print(f"\n{'='*60}\n")
+    
+    def estimate_value_added(self):
+        """
+        Step 4: Value-Added Estimation
+        
+        Estimate the incremental contribution of different ad features
+        after controlling for user characteristics and predicted clicks.
+        """
+        results = {}
+        
+        # Group by Ad Type
+        if 'Ad_Type' in self.data.columns:
+            results['by_ad_type'] = self._group_value_added('Ad_Type')
+        
+        # Group by Ad Placement
+        if 'Ad_Placement' in self.data.columns:
+            results['by_ad_placement'] = self._group_value_added('Ad_Placement')
+        
+        # Group by Ad Topic
+        if 'Ad_Topic' in self.data.columns:
+            results['by_ad_topic'] = self._group_value_added('Ad_Topic')
+        
+        self._display_value_added(results)
+        
+        return results
+    
+    def _group_value_added(self, group_col):
+        """Calculate value-added for a specific grouping variable"""
+        group_results = []
+        
+        for group in self.data[group_col].unique():
+            # Create indicator variable
+            indicator = (self.data[group_col] == group).astype(int)
+            
+            # Prepare regression with interaction
+            y = self.data['Conversion_Rate']
+            X = sm.add_constant(pd.DataFrame({
+                'Clicks_predicted': self.data['Clicks_predicted'],
+                'Age': self.data['Age'],
+                'Income': self.data['Income'],
+                'indicator': indicator,
+                'interaction': indicator * self.data['Clicks_predicted']
+            }))
+            
+            # Run OLS
+            try:
+                model = sm.OLS(y, X).fit()
+                
+                group_results.append({
+                    'Group': str(group),
+                    'Intercept_Effect': f"{model.params['indicator']:.6f}",
+                    'Slope_Effect': f"{model.params['interaction']:.6f}",
+                    'P_value_Intercept': f"{model.pvalues['indicator']:.4f}",
+                    'P_value_Slope': f"{model.pvalues['interaction']:.4f}",
+                    'Significant': '✓' if model.pvalues['indicator'] < 0.05 or model.pvalues['interaction'] < 0.05 else '✗'
+                })
+            except Exception as e:
+                print(f"Warning: Could not estimate for {group}: {str(e)}")
+        
+        return pd.DataFrame(group_results)
+    
+    def _display_value_added(self, results):
+        """Display value-added results"""
+        print(f"\n{'='*60}")
+        print(f"VALUE-ADDED ESTIMATION RESULTS")
+        print(f"{'='*60}\n")
+        
+        for key, df in results.items():
+            if len(df) > 0:
+                print(f"\n{key.upper().replace('_', ' ')}:")
+                print(f"{'-'*60}")
+                print(df.to_string(index=False))
+                print(f"{'-'*60}\n")
+
+    def run_chetty_value_added_analysis(self, subgroup_vars=None, split_method='time', 
+                                         split_ratio=0.5, min_group_size=100):
+        """
+        INTEGRATED PIPELINE: Combines subgroup analysis with Chetty's forecast bias framework.
+
+        This is the main method you should call. It properly chains:
+        1. analyze_subgroup_effects() on TRAINING data
+        2. Forecast validation on TESTING data  
+        3. Empirical Bayes shrinkage
+        4. Bias correction
+
+        Parameters:
+        -----------
+        subgroup_vars : list of str or dict
+            Variables to stratify by (same format as analyze_subgroup_effects)
+            Example: {'Income': [0, 30000, 60000, np.inf], 'Location': None}
+        split_method : str
+            'time' - split by Click_Time (chronological)
+            'random' - random split with seed
+        split_ratio : float
+            Proportion for training (default: 0.5)
+        min_group_size : int
+            Minimum observations per group in EACH split
+
+        Returns:
+        --------
+        results : dict
+            Complete results including raw estimates, bias tests, and corrections
+        """
+
+        print("\n" + "="*70)
+        print("INTEGRATED CHETTY VALUE-ADDED ANALYSIS")
+        print("="*70)
+        print(f"\nConfiguration:")
+        print(f"  Split method: {split_method}")
+        print(f"  Split ratio: {split_ratio:.1%} train / {1-split_ratio:.1%} test")
+        print(f"  Min group size: {min_group_size}")
+        print("="*70)
+
+        # =========================================================================
+        # STEP 1: SPLIT DATA
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 1: DATA SPLITTING")
+        print(f"{'─'*70}")
+
+        original_data = self.data.copy()
+
+        if split_method == 'time':
+            self.data = self.data.sort_values('Click_Time')
+            split_idx = int(len(self.data) * split_ratio)
+            train_indices = self.data.index[:split_idx]
+            test_indices = self.data.index[split_idx:]
+
+            train_data = self.data.loc[train_indices].copy()
+            test_data = self.data.loc[test_indices].copy()
+
+            print(f"✓ Time-based split:")
+            print(f"  Training: {train_data['Click_Time'].min()} to {train_data['Click_Time'].max()}")
+            print(f"  Testing:  {test_data['Click_Time'].min()} to {test_data['Click_Time'].max()}")
+
+        elif split_method == 'random':
+            train_data = self.data.sample(frac=split_ratio, random_state=42)
+            test_data = self.data.drop(train_data.index)
+            print(f"✓ Random split (seed=42)")
+
+        print(f"  Training N: {len(train_data):,}")
+        print(f"  Testing N:  {len(test_data):,}")
+
+        # =========================================================================
+        # STEP 2: RUN SUBGROUP ANALYSIS ON TRAINING DATA
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 2: ESTIMATE VALUE-ADDED (Training Sample)")
+        print(f"{'─'*70}")
+
+        # Temporarily replace self.data with training data
+        self.data = train_data.copy()
+
+        # Run subgroup analysis (this uses the existing method)
+        train_results = self.analyze_subgroup_effects(
+            subgroup_vars=subgroup_vars,
+            min_subgroup_size=min_group_size
+        )
+
+        if train_results is None or len(train_results) == 0:
+            print("\n✗ No subgroups successfully estimated in training data")
+            self.data = original_data  # Restore
+            return None
+
+        print(f"\n✓ Estimated value-added for {len(train_results)} subgroups")
+
+        # =========================================================================
+        # STEP 3: VALIDATE FORECASTS IN TESTING DATA
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 3: FORECAST VALIDATION (Testing Sample)")
+        print(f"{'─'*70}")
+
+        # For each group, calculate mean outcome in test sample
+        test_outcomes = []
+
+        for _, row in train_results.iterrows():
+            var = row['Variable']
+            subgroup = row['Subgroup']
+
+            # Filter test data to this subgroup
+            if '_subgroup' in var:
+                # This was a binned continuous variable
+                # We need to recreate the bins
+                continue  # Skip for now - handle separately
+            else:
+                # Categorical variable
+                group_test = test_data[test_data[var] == subgroup]
+
+            if len(group_test) < min_group_size:
+                continue
+            
+            # Mean conversion rate in test sample
+            mean_outcome = group_test['Conversion_Rate'].mean()
+            n_test = len(group_test)
+
+            test_outcomes.append({
+                'Variable': var,
+                'Subgroup': subgroup,
+                'Value_Added_Train': row['Causal_Effect_Beta'],
+                'SE_Train': row['Std_Error'],
+                'N_Train': row['N'],
+                'Mean_Outcome_Test': mean_outcome,
+                'N_Test': n_test,
+                'First_Stage_F': row['First_Stage_F']
+            })
+
+        test_df = pd.DataFrame(test_outcomes)
+
+        if len(test_df) < 3:
+            print(f"\n✗ Insufficient groups for validation (need ≥3, have {len(test_df)})")
+            self.data = original_data
+            return None
+
+        print(f"✓ Validated {len(test_df)} groups in testing sample")
+        print(f"\nTest Sample Statistics:")
+        print(test_df[['Variable', 'Subgroup', 'Value_Added_Train', 'Mean_Outcome_Test', 'N_Test']].to_string(index=False))
+
+        # =========================================================================
+        # STEP 4: FORECAST UNBIASEDNESS TEST
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 4: FORECAST UNBIASEDNESS TEST")
+        print(f"{'─'*70}")
+        print("\nRegression: Mean_Outcome_test = α + β * ValueAdded_train + ε")
+        print("H₀: β = 1 (unbiased forecasts)")
+
+        # Run regression
+        X_forecast = sm.add_constant(test_df['Value_Added_Train'])
+        y_forecast = test_df['Mean_Outcome_Test']
+
+        # Weight by test sample size for precision
+        weights = np.sqrt(test_df['N_Test'])
+        forecast_model = sm.WLS(y_forecast, X_forecast, weights=weights).fit()
+
+        # Extract coefficients
+        alpha = forecast_model.params['const']
+        beta = forecast_model.params['Value_Added_Train']
+        beta_se = forecast_model.bse['Value_Added_Train']
+        r_squared = forecast_model.rsquared
+
+        # Test β = 1
+        t_stat_bias = (beta - 1) / beta_se
+        p_val_bias = 2 * (1 - stats.t.cdf(abs(t_stat_bias), len(test_df) - 2))
+
+        print(f"\nResults:")
+        print(f"  α (intercept):     {alpha:.6f}")
+        print(f"  β (slope):         {beta:.6f} (SE: {beta_se:.6f})")
+        print(f"  Prediction R²:     {r_squared:.4f}")
+        print(f"\n  Test H₀: β = 1")
+        print(f"  t-statistic:       {t_stat_bias:.3f}")
+        print(f"  p-value:           {p_val_bias:.4f}")
+
+        is_biased = p_val_bias < 0.05
+
+        if is_biased:
+            print(f"\n  ✗ REJECT H₀: Significant forecast bias detected")
+            if beta < 1:
+                bias_direction = "OVERPREDICTION (regression to mean)"
+                print(f"    → Training estimates overpredict test outcomes")
+                print(f"    → Shrinkage is strongly recommended")
+            else:
+                bias_direction = "UNDERPREDICTION"
+                print(f"    → Training estimates underpredict test outcomes")
+        else:
+            bias_direction = "MINIMAL"
+            print(f"\n  ✓ FAIL TO REJECT H₀: No significant bias")
+            print(f"    → Training estimates predict test outcomes well")
+
+        # =========================================================================
+        # STEP 5: EMPIRICAL BAYES SHRINKAGE
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 5: EMPIRICAL BAYES SHRINKAGE")
+        print(f"{'─'*70}")
+
+        # Calculate variance components
+        va_estimates = train_results['Causal_Effect_Beta'].values
+        va_variances = train_results['Std_Error'].values ** 2
+
+        # Grand mean
+        mu = np.mean(va_estimates)
+
+        # Variance decomposition
+        var_total = np.var(va_estimates)
+        var_noise = np.mean(va_variances)
+        var_signal = max(0, var_total - var_noise)
+
+        # Reliability
+        reliability = var_signal / (var_signal + var_noise) if (var_signal + var_noise) > 0 else 0
+
+        print(f"\nVariance Decomposition:")
+        print(f"  Between-group variance (signal): {var_signal:.8f}")
+        print(f"  Within-group variance (noise):   {var_noise:.8f}")
+        print(f"  Total variance:                  {var_total:.8f}")
+        print(f"  Reliability (λ̄):                 {reliability:.4f}")
+
+        # Group-specific shrinkage
+        shrinkage_results = []
+
+        print(f"\nGroup-Specific Shrinkage:")
+        print(f"{'Variable':<15} {'Subgroup':<20} {'Raw VA':<12} {'λ':<8} {'Shrunk VA':<12}")
+        print(f"{'-'*75}")
+
+        for _, row in train_results.iterrows():
+            raw_va = row['Causal_Effect_Beta']
+            se = row['Std_Error']
+
+            # Shrinkage factor for this group
+            lambda_i = var_signal / (var_signal + se**2) if (var_signal + se**2) > 0 else 0
+
+            # Shrink toward grand mean
+            shrunk_va = mu + lambda_i * (raw_va - mu)
+
+            print(f"{row['Variable']:<15} {str(row['Subgroup']):<20} {raw_va:>11.6f} {lambda_i:>7.4f} {shrunk_va:>11.6f}")
+
+            shrinkage_results.append({
+                'Variable': row['Variable'],
+                'Subgroup': row['Subgroup'],
+                'Raw_VA': raw_va,
+                'Shrinkage_Factor': lambda_i,
+                'Shrunk_VA': shrunk_va,
+                'SE': se,
+                'N_Train': row['N']
+            })
+
+        shrinkage_df = pd.DataFrame(shrinkage_results)
+
+        # =========================================================================
+        # STEP 6: BIAS CORRECTION
+        # =========================================================================
+
+        print(f"\n{'─'*70}")
+        print("STEP 6: FORECAST BIAS CORRECTION")
+        print(f"{'─'*70}")
+
+        # Bias-corrected estimates: (Shrunk_VA - α) / β
+        shrinkage_df['Bias_Corrected_VA'] = (shrinkage_df['Shrunk_VA'] - alpha) / beta if beta != 0 else shrinkage_df['Shrunk_VA']
+
+        print(f"\nApplying correction: VA_final = (VA_shrunk - {alpha:.6f}) / {beta:.6f}")
+        print(f"\nFinal Value-Added Estimates:")
+
+        # Sort by bias-corrected VA
+        shrinkage_df = shrinkage_df.sort_values('Bias_Corrected_VA', ascending=False)
+
+        display_cols = ['Variable', 'Subgroup', 'Raw_VA', 'Shrunk_VA', 'Bias_Corrected_VA', 'N_Train']
+        print("\n" + shrinkage_df[display_cols].to_string(index=False))
+
+        # =========================================================================
+        # STEP 7: SUMMARY AND INTERPRETATION
+        # =========================================================================
+
+        print(f"\n{'='*70}")
+        print("SUMMARY: CORRECTIONS APPLIED")
+        print(f"{'='*70}")
+
+        # Calculate average corrections
+        avg_shrinkage = (shrinkage_df['Shrunk_VA'] - shrinkage_df['Raw_VA']).abs().mean()
+        avg_bias_correction = (shrinkage_df['Bias_Corrected_VA'] - shrinkage_df['Shrunk_VA']).abs().mean()
+        avg_total_correction = (shrinkage_df['Bias_Corrected_VA'] - shrinkage_df['Raw_VA']).abs().mean()
+
+        print(f"\nAverage absolute corrections:")
+        print(f"  Shrinkage effect:      {avg_shrinkage:.6f}")
+        print(f"  Bias correction:       {avg_bias_correction:.6f}")
+        print(f"  Total correction:      {avg_total_correction:.6f}")
+
+        print(f"\nDiagnostics:")
+        print(f"  Reliability:           {reliability:.4f}")
+        print(f"  Forecast bias (β):     {beta:.4f}")
+        print(f"  Prediction R²:         {r_squared:.4f}")
+        print(f"  Bias type:             {bias_direction}")
+
+        # Recommendations
+        print(f"\nRecommendations:")
+        if reliability < 0.3:
+            print("  ⚠ Low reliability - value-added estimates are very noisy")
+            print("    → Collect more data or use coarser groupings")
+        elif reliability < 0.7:
+            print("  ✓ Moderate reliability - shrinkage is important")
+        else:
+            print("  ✓✓ High reliability - raw estimates are fairly trustworthy")
+
+        if is_biased:
+            print(f"  ⚠ Forecast bias detected - bias correction is essential")
+        else:
+            print(f"  ✓ Minimal forecast bias - raw estimates predict well")
+
+        # =========================================================================
+        # PACKAGE RESULTS
+        # =========================================================================
+
+        results = {
+            'split_info': {
+                'method': split_method,
+                'n_train': len(train_data),
+                'n_test': len(test_data)
+            },
+            'train_estimates': train_results,
+            'test_outcomes': test_df,
+            'forecast_bias': {
+                'alpha': alpha,
+                'beta': beta,
+                'beta_se': beta_se,
+                'p_value': p_val_bias,
+                'r_squared': r_squared,
+                'is_biased': is_biased,
+                'direction': bias_direction
+            },
+            'shrinkage': {
+                'reliability': reliability,
+                'var_signal': var_signal,
+                'var_noise': var_noise,
+                'mu': mu
+            },
+            'final_estimates': shrinkage_df
+        }
+
+        # Store for later access
+        self.chetty_results = results
+
+        # Restore original data
+        self.data = original_data
+
+        print("\n" + "="*70)
+        print("INTEGRATED ANALYSIS COMPLETE")
+        print("="*70)
+
+        return results
+
+    def compare_estimation_approaches(self):
+        """
+        Create side-by-side comparison of estimation approaches.
+        Must be called after run_chetty_value_added_analysis().
+
+        Compares:
+        1. Raw 2SLS estimates (training sample)
+        2. Shrunk estimates (Empirical Bayes)
+        3. Bias-corrected estimates (Full Chetty method)
+
+        Returns:
+        --------
+        comparison_df : pd.DataFrame
+        """
+
+        if not hasattr(self, 'chetty_results'):
+            print("\n⚠ Must run run_chetty_value_added_analysis() first")
+            return None
+
+        print("\n" + "="*70)
+        print("COMPARISON: ESTIMATION APPROACHES")
+        print("="*70)
+
+        final = self.chetty_results['final_estimates']
+
+        # Calculate changes
+        final['Change_from_Shrinkage'] = final['Shrunk_VA'] - final['Raw_VA']
+        final['Change_from_Bias_Corr'] = final['Bias_Corrected_VA'] - final['Shrunk_VA']
+        final['Total_Change'] = final['Bias_Corrected_VA'] - final['Raw_VA']
+        final['Pct_Change'] = (final['Total_Change'] / final['Raw_VA'].abs()) * 100
+
+        display_cols = [
+            'Variable', 'Subgroup',
+            'Raw_VA', 'Shrunk_VA', 'Bias_Corrected_VA',
+            'Total_Change', 'Pct_Change'
+        ]
+
+        print("\n" + final[display_cols].to_string(index=False))
+
+        # Summary
+        print(f"\n{'─'*70}")
+        print("SUMMARY STATISTICS")
+        print(f"{'─'*70}")
+
+        print(f"\nMean absolute change:")
+        print(f"  From shrinkage:        {final['Change_from_Shrinkage'].abs().mean():.6f}")
+        print(f"  From bias correction:  {final['Change_from_Bias_Corr'].abs().mean():.6f}")
+        print(f"  Total:                 {final['Total_Change'].abs().mean():.6f}")
+
+        print(f"\nMean % change:           {final['Pct_Change'].abs().mean():.1f}%")
+
+        # Which groups changed most?
+        print(f"\nGroups with largest corrections:")
+        top_changes = final.nlargest(3, 'Total_Change', keep='all')[['Subgroup', 'Raw_VA', 'Bias_Corrected_VA', 'Total_Change']]
+        print(top_changes.to_string(index=False))
+
+        return final
