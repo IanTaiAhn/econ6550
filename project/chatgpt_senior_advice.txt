@@ -1,97 +1,88 @@
 CRITICAL issues (will invalidate results if not fixed)
 
 Wrong method for inference — you use OLS on the fitted first-stage values and take its SEs as if they were valid 2SLS SEs.
-
-In the code you do first_stage = sm.OLS(y_first_stage, X_first_stage).fit() then D_hat = first_stage.fittedvalues and second_stage = sm.OLS(Y, [D_hat + controls]).fit() and then read off second_stage.bse.
-
-That is not a valid way to compute 2SLS standard errors. The second stage standard errors will be incorrect because they do not account for the sampling variability of the first-stage estimation (generated regressor problem) and for the instrumented nature of the regressor.
-
-Fix: Use a proper IV estimator (e.g., linearmodels.iv.IV2SLS, statsmodels.sandbox.regression.gmm.IVGMM/IV2SLS, or implement the analytic 2SLS variance correctly). Also compute robust (heteroskedasticity-consistent) and clustered standard errors where appropriate.
+In the code you do first_stage = sm.OLS(y_first_stage, X_first_stage).fit() then D_hat = first_stage.fittedvalues and 
+second_stage = sm.OLS(Y, [D_hat + controls]).fit() and then read off second_stage.bse.
+That is not a valid way to compute 2SLS standard errors. The second stage standard errors will be incorrect because they do 
+not account for the sampling variability of the first-stage estimation (generated regressor problem) and for the 
+instrumented nature of the regressor.
+Fix: Use a proper IV estimator (e.g., linearmodels.iv.IV2SLS, statsmodels.sandbox.regression.gmm.IVGMM/IV2SLS, or implement 
+the analytic 2SLS variance correctly). Also compute robust (heteroskedasticity-consistent) and clustered standard errors
+where appropriate.
 
 Data leakage through preprocessing used outside cross-validation.
-
-You call self.scaler.fit_transform(X_instrument) to produce X_instrument_scaled then feed that to cross_val_predict(...). That fits the scaler on the whole data before CV — leaking information about the target distribution into each fold. Same applies for any imputer / label encoder fitted on full data before out-of-fold predictions.
-
-Fix: Use a Pipeline that includes the scaler/imputer inside the estimator you pass to cross_val_predict, or implement KFold loops manually where you fit the preprocessing only on training folds and transform test fold.
+You call self.scaler.fit_transform(X_instrument) to produce X_instrument_scaled then feed that to cross_val_predict(...). 
+That fits the scaler on the whole data before CV — leaking information about the target distribution into each fold. Same 
+applies for any imputer / label encoder fitted on full data before out-of-fold predictions.
+Fix: Use a Pipeline that includes the scaler/imputer inside the estimator you pass to cross_val_predict, or implement KFold 
+loops manually where you fit the preprocessing only on training folds and transform test fold.
 
 Instrument validity / exclusion restriction is likely violated by included features.
-
-You’re using features such as Age, Income, Location, Gender, Ad_Type, Ad_Placement etc. as predictors to generate Clicks_predicted. But many of those (Age, Income, Location, Gender) plausibly affect Conversion_Rate directly (not only via Clicks). That means the ML-predicted clicks will correlate with the error term of the outcome equation → instrument is invalid.
-
-Fix / tests: You must carefully justify the exclusion restriction. If you can’t, restrict instruments to variables plausibly exogenous to conversion outcome (e.g., randomization, ad assignment that was randomized, features of ad timing that were as-good-as-random, geography/time variation that’s unrelated to conversion except via exposure). At minimum run balance/placebo tests: regress pre-treatment outcomes or baseline covariates on the instrument — significance indicates violation.
+You’re using features such as Age, Income, Location, Gender, Ad_Type, Ad_Placement etc. as predictors to generate 
+Clicks_predicted. But many of those (Age, Income, Location, Gender) plausibly affect Conversion_Rate directly 
+(not only via Clicks). That means the ML-predicted clicks will correlate with the error term of the outcome 
+equation → instrument is invalid.
+Fix / tests: You must carefully justify the exclusion restriction. If you can’t, restrict instruments to variables plausibly 
+exogenous to conversion outcome (e.g., randomization, ad assignment that was randomized, features of ad timing that were 
+as-good-as-random, geography/time variation that’s unrelated to conversion except via exposure). At minimum run 
+balance/placebo tests: regress pre-treatment outcomes or baseline covariates on the instrument — significance indicates 
+violation.
 
 Cross-validated predictions are used as an instrument but you do not produce correct weak-instrument diagnostics.
-
-You compute a couple of ad-hoc metrics but not the proper partial (conditional) F statistic for the instrument(s) in the first-stage that accounts for other controls. The code’s R²/F computation appears to be based on regression of d on z only, not on d on z + controls. That’s wrong.
-
-Fix: Compute the first stage: regress D on Z and X and report the partial F for the instrument(s) (i.e., test H0: π1 = 0 in the first stage). Use standard weak-instrument critical values (e.g., Stock–Yogo) and report partial R² (or use linearmodels which can produce relevant diagnostics).
+You compute a couple of ad-hoc metrics but not the proper partial (conditional) F statistic for the instrument(s) in the 
+first-stage that accounts for other controls. The code’s R²/F computation appears to be based on regression of d on z only, 
+not on d on z + controls. That’s wrong.
+Fix: Compute the first stage: regress D on Z and X and report the partial F for the instrument(s) (i.e., test H0: π1 = 0 in 
+the first stage). Use standard weak-instrument critical values (e.g., Stock–Yogo) and report partial R² (or use linearmodels 
+which can produce relevant diagnostics).
 
 Potential leakage / misuse of target in instrument construction.
-
-You predict Clicks (which is fine) but make sure none of the features used to predict Clicks were derived from the outcome Conversion_Rate or from future data that would not be available at instrument time (temporal leakage).
-
+You predict Clicks (which is fine) but make sure none of the features used to predict Clicks were derived from the outcome 
+Conversion_Rate or from future data that would not be available at instrument time (temporal leakage).
 Fix: Establish a clear temporal ordering and only use pre-treatment variables for instrument construction.
 
 Incorrect implementation of statistical diagnostics (e.g., Cragg-Donald).
-
-I found ad-hoc formulas (e.g., cragg_donald = n * r_squared) that are not correct for Cragg-Donald, which depends on number of instruments and number of endogenous variables. Use established libraries or compute the correct formula.
-
+I found ad-hoc formulas (e.g., cragg_donald = n * r_squared) that are not correct for Cragg-Donald, which depends on number 
+of instruments and number of endogenous variables. Use established libraries or compute the correct formula.
 Scaling before tree-based models is unnecessary and done incorrectly for CV.
-
-You scale features for RandomForest/GradientBoosting. Tree models do not need scaling; scaling adds unnecessary computation and, if done before CV, leaks. If you want to use scaling for linear meta-estimators, put it in the pipeline.
-
+You scale features for RandomForest/GradientBoosting. Tree models do not need scaling; scaling adds unnecessary computation 
+and, if done before CV, leaks. If you want to use scaling for linear meta-estimators, put it in the pipeline.
 Major issues / strong recommendations
 
 Use a standard IV package
-
-Replace the manual two-step OLS approach with linearmodels.iv.IV2SLS (preferred for neat diagnostics) or statsmodels IV modules. This yields correct standard errors, overidentification tests (Sargan/Hansen) and weak instrument tests if available. Example snippet below.
-
+Replace the manual two-step OLS approach with linearmodels.iv.IV2SLS (preferred for neat diagnostics) or statsmodels 
+IV modules. This yields correct standard errors, overidentification tests (Sargan/Hansen) and weak instrument tests if 
+available. Example snippet below.
 Report/compute appropriate diagnostics
-
 First-stage partial F for each instrument (or F for joint instrument set).
-
 Partial R² (Staiger & Stock measures) and effective Cragg-Donald statistic for many instruments.
-
 Overidentification test if >1 instrument (Sargan or Hansen).
-
 Placebo / balance tests: regress Clicks_predicted on pre-treatment covariates or regress those covariates on the instrument(s).
-
 Clustered standard errors
-
-If data are clustered (e.g., by user, by ad campaign, by geographic unit), cluster SEs accordingly. 2SLS inference ignoring clustering will understate uncertainty.
-
+If data are clustered (e.g., by user, by ad campaign, by geographic unit), cluster SEs accordingly. 2SLS inference ignoring 
+clustering will understate uncertainty.
 Simulate data for unit/integration tests
-
-Add tests where you generate synthetic data where the true causal effect is known, simulate an exogenous instrument and an invalid instrument, and ensure the pipeline recovers the correct effect when the instrument is valid and fails when invalid.
-
+Add tests where you generate synthetic data where the true causal effect is known, simulate an exogenous instrument and an 
+invalid instrument, and ensure the pipeline recovers the correct effect when the instrument is valid and fails when invalid.
 Code quality & reproducibility
-
 Replace print() spam with a logging module and levels.
-
 Factor long functions into smaller units (instrument construction, diagnostics, fit_2sls, subgroup_analysis).
-
 Add docstrings and type hints.
-
 Add unit tests for edge cases (all NaNs in a column, small group sizes, degenerate fitted models).
-
 Use pipelines for CV
-
-Example: Pipeline([("imputer", SimpleImputer()), ("scaler", StandardScaler()), ("model", RandomForestRegressor(...))]) then use cross_val_predict(pipeline, X, y, cv=...).
-
+Example: Pipeline([("imputer", SimpleImputer()), ("scaler", StandardScaler()), ("model", RandomForestRegressor(...))]) then 
+use cross_val_predict(pipeline, X, y, cv=...).
 Approach to subgroup analysis
-
-You run 2SLS per subgroup. That’s OK, but you must correct for multiple testing (or pre-specify subgroups). Also beware of small-sample weak instrument problems inside subgroups.
-
+You run 2SLS per subgroup. That’s OK, but you must correct for multiple testing (or pre-specify subgroups). Also beware of 
+small-sample weak instrument problems inside subgroups.
 Minor / style / small bugs I noticed
-
 You warnings.filterwarnings('ignore') globally — dangerous during development; prefer filtering carefully.
-
-You use LabelEncoder for categorical flags that are not ordinal; better to use OneHotEncoder for linear models or tree encoders for trees.
-
-Some functions reference variables that may not exist in scope under certain code paths; add assertions and early checks (e.g., ensure Clicks_predicted exists before referencing).
-
-There are many hard-coded parameter choices (e.g., n_estimators=200, max_depth=15) — consider exposing them as function/class arguments or a config object.
-
-The custom routine _calculate_2sls_standard_errors appears to be incomplete and not used consistently. Delete or replace with a correct VCOV method.
-
+You use LabelEncoder for categorical flags that are not ordinal; better to use OneHotEncoder for linear models or tree 
+encoders for trees.
+Some functions reference variables that may not exist in scope under certain code paths; add assertions and early checks 
+(e.g., ensure Clicks_predicted exists before referencing).
+There are many hard-coded parameter choices (e.g., n_estimators=200, max_depth=15) — consider exposing them as 
+function/class arguments or a config object.
+The custom routine _calculate_2sls_standard_errors appears to be incomplete and not used consistently. Delete or replace 
+with a correct VCOV method.
 You silence exceptions in places (broad excepts) — avoid unless you log the exception details.
