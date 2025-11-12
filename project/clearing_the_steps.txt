@@ -53,3 +53,39 @@ If the foundation is solid but the bridge leads nowhere (no causal effect), you 
 Would you like me to sketch out a diagnostic checklist (like a flowchart) you can run in your Jupyter workflow to decide
 whether to proceed to forecast bias testing or stop at instrument diagnostics? That way you’ll have a reproducible 
 decision rule.
+
+
+
+SJDF
+
+clean_data_strict
+engineer_time_features_enhanced
+engineer_instrument_features_comprehensive
+encode_categorical_features
+
+ FLAG ['Age', 'Income', 'Gender_encoded', 'Location_encoded', 'Ad_Type_encoded', 'Ad_Topic_encoded', 'Ad_Placement_encoded',
+  'Day_of_Week', 'Hour', 'Age', 'Income', 'Income_log', 'Age_log', 'Day_of_Week', 'Hour', 'Month', 'Day_of_Month', 
+  'Week_of_Year', 'Weekend', 'BusinessHours', 'Evening', 'Morning', 'Night', 'Lunch', 'Is_Summer', 'Is_Winter', 
+  'Is_Holiday_Season', 'Beginning_of_Month', 'End_of_Month', 'Is_Monday', 'Is_Friday', 'Gender_encoded', 'Location_encoded',
+   'Ad_Type_encoded', 'Ad_Topic_encoded', 'Ad_Placement_encoded', 'Age_x_Ad_Type_encoded', 'Age_x_Ad_Topic_encoded', 
+   'Age_x_Ad_Placement_encoded', 'Income_x_Ad_Type_encoded', 'Income_x_Ad_Topic_encoded', 'Income_x_Ad_Placement_encoded', 
+   'Gender_encoded_x_Ad_Type_encoded', 'Gender_encoded_x_Ad_Topic_encoded', 'Gender_encoded_x_Ad_Placement_encoded',
+    'Age_x_Weekend', 'Age_x_BusinessHours', 'Age_x_Evening', 'Age_x_Morning', 'Age_x_Hour', 'Age_x_Is_Monday', 
+    'Age_x_Is_Friday', 'Age_x_Beginning_of_Month', 'Age_x_End_of_Month', 'Income_x_Weekend', 'Income_x_BusinessHours', 
+    'Income_x_Evening', 'Income_x_Morning', 'Income_x_Hour', 'Income_x_Is_Monday', 'Income_x_Is_Friday', 
+    'Income_x_Beginning_of_Month', 'Income_x_End_of_Month', 'Ad_Type_encoded_x_Weekend', 'Ad_Type_encoded_x_BusinessHours', 
+    'Ad_Type_encoded_x_Evening', 'Ad_Type_encoded_x_Morning', 'Ad_Type_encoded_x_Hour', 'Ad_Type_encoded_x_Is_Monday', 
+    'Ad_Type_encoded_x_Is_Friday', 'Ad_Type_encoded_x_Beginning_of_Month', 'Ad_Type_encoded_x_End_of_Month',
+     'Ad_Topic_encoded_x_Weekend', 'Ad_Topic_encoded_x_BusinessHours', 'Ad_Topic_encoded_x_Evening',
+      'Ad_Topic_encoded_x_Morning', 'Ad_Topic_encoded_x_Hour', 'Ad_Topic_encoded_x_Is_Monday',
+       'Ad_Topic_encoded_x_Is_Friday', 'Ad_Topic_encoded_x_Beginning_of_Month', 'Ad_Topic_encoded_x_End_of_Month',
+        'Ad_Placement_encoded_x_Weekend', 'Ad_Placement_encoded_x_BusinessHours', 'Ad_Placement_encoded_x_Evening',
+         'Ad_Placement_encoded_x_Morning', 'Ad_Placement_encoded_x_Hour', 'Ad_Placement_encoded_x_Is_Monday', 
+         'Ad_Placement_encoded_x_Is_Friday', 'Ad_Placement_encoded_x_Beginning_of_Month',
+         'Ad_Placement_encoded_x_End_of_Month', 'Location_x_Age', 'Location_x_Income', 'Location_x_Gender_encoded',
+          'Location_x_Ad_Type_encoded', 'Location_x_Ad_Topic_encoded', 'Location_x_Ad_Placement_encoded', 
+          'Location_x_Weekend', 'Location_x_BusinessHours', 'Location_x_Evening', 'Age_squared', 'Age_cubed', 'Age_sqrt', 
+          'Income_squared', 'Income_sqrt', 'Hour_squared', 'Hour_sin', 'Hour_cos', 'Age_x_AdType_x_Weekend',
+           'Age_x_AdType_x_Evening', 'Income_x_Placement_x_BizHours', 'Income_x_Placement_x_Weekend', 
+           'Location_x_AdType_x_Evening', 'Gender_x_Topic_x_Weekend', 'AdType_x_Placement', 'AdType_x_Topic', 
+           'AdTopic_x_Placement']

@@ -1,0 +1,12 @@
+Hello Professor,
+
+As I've been working on this project I have learned a lot and discovered many things about my dataset.
+Firstly, my assumption that "Clicks" is endogenous is true, and I've successfully stacked random forest, xgbooster, and gradient boosting
+to create an instrument from "Clicks". However, the instrument was super weak, and I even added 20+ interaction terms,
+(income x age, age x ad_topic, etc..) and the instrument strenght was still less than 5. So, I then tried generating synthetic data
+and this made the instrument useable for 2SLS. So I'm at this point where I did have some code written that utilized Raj Chetty's 2014
+methodologies for correcting forecast bias from value added estimates by using lagged variables and such, but I don't know if It
+is even feasible due to my weak instruments.
+
+
+AM I COPING OUT? HOW ELSE CAN I INCREASE INSTRUMENT STRENGHT?
