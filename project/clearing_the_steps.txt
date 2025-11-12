@@ -56,7 +56,7 @@ decision rule.
 
 
 
-SJDF
+Place to paste text and such
 
 clean_data_strict
 engineer_time_features_enhanced
@@ -89,3 +89,6 @@ encode_categorical_features
            'Age_x_AdType_x_Evening', 'Income_x_Placement_x_BizHours', 'Income_x_Placement_x_Weekend', 
            'Location_x_AdType_x_Evening', 'Gender_x_Topic_x_Weekend', 'AdType_x_Placement', 'AdType_x_Topic', 
            'AdTopic_x_Placement']
+
+
+God damn. IT just keeps failing and failing hahaha
