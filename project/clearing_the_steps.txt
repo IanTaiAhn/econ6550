@@ -1,0 +1,55 @@
+Nice:
+Clicks are messy because people who click are already more likely to buy.
+Instrumental variables let you isolate the part of clicks that comes from ad mechanics (placement, type, timing)
+rather than user intent.
+2SLS uses that clean variation to estimate the true causal effect of clicks on conversions.
+Chetty’s insight: after you estimate, check if your model’s predictions line up with reality when conditions change. 
+If not, you’ve got forecast bias.
+
+My Question Back:
+Well. What if the instrument created is too weak? Or say the instrument is strong enough, but the causal effect of the
+predicted clicks is insignificant? Would it even be worht it to move onto the Chetty insight portion with forecast bias?
+This is a really good “what if” question — it’s the kind of fork in the road that econometricians wrestle with all the 
+time. Let’s break it down in plain terms:
+
+1. If the instrument is too weak
+Problem: A weak instrument means your first stage barely explains clicks.
+Consequence: The 2SLS estimates become unreliable — they can be more biased than OLS and have huge standard errors.
+Action: Don’t move forward. Instead, revisit instrument design:
+Add stronger policy-side features (placement rules, timing shocks, randomized holdouts).
+Check first-stage F-statistics (rule of thumb: >10 is “strong enough”).
+Consider multiple instruments and test overidentification.
+
+2. If the instrument is strong enough, but the causal effect is insignificant
+Problem: You’ve got a valid instrument, but the estimated effect of clicks on conversions is statistically
+indistinguishable from zero.
+Consequence: That’s actually a result — it suggests clicks (at least the variation induced by your instrument) don’t 
+causally drive conversions.
+Action:
+Report it honestly. It may mean ad clicks are just correlated with conversions, not causing them.
+Explore heterogeneity: maybe the effect is zero overall but positive in certain segments 
+(e.g., video ads in rural areas).
+Consider whether your outcome variable (Conversion_Rate) is noisy or needs aggregation.
+
+3. Should you still do the Chetty-style forecast bias test?
+If the instrument is weak: No. Forecast bias checks rely on having a credible causal estimate to validate.
+Without that, you’re just testing noise.
+If the instrument is strong but the effect is insignificant: It depends:
+If you want to validate predictive accuracy, you can still run forecast bias checks — but they’ll likely confirm that 
+your model doesn’t add much causal signal.
+If your goal is causal inference, then there’s little point in moving to forecast bias. The Chetty insight is about 
+testing whether causal estimates are biased in prediction. If the causal effect itself is null, bias testing isn’t informative.
+
+4. In plain words
+Weak instrument → stop and redesign.
+Strong instrument but no effect → that’s the finding. You can still check forecast bias if you care about prediction,
+but it won’t rescue a null causal effect.
+Chetty’s insight is only useful once you have a meaningful causal estimate to stress-test.
+
+👉 Think of it like building a bridge:
+If the foundation (instrument strength) is shaky, don’t bother testing how cars drive across it.
+If the foundation is solid but the bridge leads nowhere (no causal effect), you can still test the road quality
+(forecast bias), but the journey won’t be meaningful.
+Would you like me to sketch out a diagnostic checklist (like a flowchart) you can run in your Jupyter workflow to decide
+whether to proceed to forecast bias testing or stop at instrument diagnostics? That way you’ll have a reproducible 
+decision rule.
