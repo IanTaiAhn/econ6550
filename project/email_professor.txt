@@ -103,3 +103,11 @@ Frame the study as: “Which ad characteristics drive conversions, and are click
 This way, you still leverage the dataset, but you avoid the weak instrument trap.
 
 👉 Would you like me to sketch a new regression design (without IV) that directly estimates the effect of ad features on Conversion Rate, plus a side test for forecast bias (Clicks → Conversion)? That would give you a clean pivot path.
+
+
+What drives clicks? Is that the new question? I was hoping to use clicks as an endogenous instrument, but now it may be 
+what drives clicks?
+
+Okay professor
+
+I still wanted to use 2SLS with my ml feature engineered thang...

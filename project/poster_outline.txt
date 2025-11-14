@@ -1,0 +1,149 @@
+Part I: Empirical Limits with Real Data
+Title idea: “The Endogeneity of Clicks: Limits of Instrumental Variable Approaches in Digital Advertising”
+
+Motivation:
+Clicks are widely used as a proxy for ad effectiveness, but they are endogenous (correlated with unobserved user intent).
+OLS estimates are biased; IV/2SLS requires strong instruments.
+
+Empirical setup:
+Dataset: demographics, ad features, clicks, conversions.
+
+Instruments tested: Ad_Type, Ad_Placement, Ad_Topic, Day_of_Week.
+ML feature engineering attempted to strengthen instruments.
+
+Findings:
+First-stage F-statistics are weak.
+Correlation between predicted and actual clicks is near zero.
+Even with ML, instruments remain weak.
+
+Conclusion: In practice, observational ad data struggles to support IV inference.
+
+Contribution:
+Demonstrates the empirical difficulty of finding strong instruments in digital ads.
+Provides diagnostics (Stock–Yogo, Cragg–Donald) as a cautionary tale for applied researchers.
+
+##############################################################################################################
+
+Part II: Conceptual Demonstration with Synthetic Data
+Title idea: “Forecast Bias in Click-Based Measures: A Simulation Inspired by Chetty et al. (2014)”
+
+Motivation:
+Even if instruments were strong, are clicks unbiased forecasts of conversions?
+Chetty’s forecast bias framework in education provides a template.
+
+Synthetic design:
+Generate data where clicks are endogenous to latent user interest.
+Define ad “events” (e.g., placement/type changes) analogous to teacher turnover.
+Compare forecasted conversions (based on clicks) to actual conversions.
+
+Forecast bias test:
+Calibration slope: regress actual conversions on predicted conversions.
+
+Event-study validation: forecasted vs. realized changes when ad features shift.
+Show systematic overprediction (e.g., flashy ads with high clicks but low conversions).
+
+Findings:
+OLS forecasts are biased (systematic misprediction).
+2SLS forecasts correct bias when instruments are strong (in simulation).
+Demonstrates how forecast bias manifests in ad settings.
+
+Contribution:
+Extends Chetty’s framework to digital advertising.
+Provides a conceptual lens: clicks may mislead as forecasts, even beyond endogeneity.
+Highlights the need for experimental variation in ad studies.
+
+##############################################################################################################
+
+Conclusion / Integration
+Part I: Real-world ad data → instruments are weak, IV inference unreliable.
+
+Part II: Synthetic data → forecast bias framework shows why clicks can mislead as forecasts.
+
+Overall message:
+Empirically: caution in using clicks as causal regressors.
+Conceptually: clicks may suffer forecast bias, requiring better measures or experimental designs.
+Managerial implication: don’t equate clicks with conversions; design studies to validate predictive measures.
+
+🎯 Why this works
+Part I grounds the paper in real data and shows the empirical challenge.
+Part II elevates the paper by connecting to Chetty’s influential framework, even if synthetic.
+Together, they tell a coherent story: “Clicks are endogenous and weakly instrumented in practice; conceptually,
+they may also suffer forecast bias.”
+
+#################POSTER TIME#############################################################################################
+
+🧩 Poster Layout Strategy for Your Two-Part Study
+Here’s how to map your study onto the sections of the Weber State template:
+
+🔹 Title of Research Project
+“Clicks, Instruments, and Forecast Bias: Evaluating Causal Inference in Digital Advertising” Keep it jargon-free but signal both empirical and conceptual depth.
+
+🔹 Authors Line
+Include your name, department, and any collaborators or advisors.
+
+🔹 Introduction
+Frame the problem and motivation:
+
+Clicks are widely used to measure ad effectiveness.
+But they’re endogenous and may mislead causal inference.
+
+You explore this in two parts: real-world instrument diagnostics and a synthetic forecast bias simulation.
+
+🔹 Research Goal
+Split into two bullets:
+
+Part I: Test whether ML-enhanced instruments can reliably identify causal effects of clicks on conversions.
+
+Part II: Demonstrate how forecast bias can distort click-based predictions using synthetic data.
+
+🔹 Methods
+Divide into two sub-panels:
+
+Part I: Real Data Instrument Diagnostics
+Dataset: 9,543 ad impressions with demographics, ad features, clicks, conversions.
+
+ML feature engineering to predict Clicks.
+2SLS vs. OLS comparison using Ad_Type, Ad_Placement, Ad_Topic, Day_of_Week as instruments.
+Instrument strength diagnostics (F-stat, Cragg–Donald, correlation).
+
+Part II: Synthetic Forecast Bias Simulation
+Simulated ad cohorts with endogenous click behavior.
+
+Forecast conversion rates using OLS and 2SLS.
+Apply Chetty-style calibration slope and event-based validation.
+Measure systematic misprediction (forecast bias).
+
+🔹 Figures and Results
+Use 3–4 visual panels:
+
+First-stage diagnostics (real data):
+Bar chart of F-statistics across models.
+Scatter plot of Clicks vs. predicted Clicks (low correlation).
+
+2SLS vs. OLS estimates (real data):
+Coefficient comparison with confidence intervals.
+Highlight instability due to weak instruments.
+
+Forecast bias calibration (synthetic):
+Plot: actual vs. predicted conversions across cohorts.
+Show slope < 1 → overprediction.
+
+Event-study panel (synthetic):
+Forecasted vs. realized conversion changes when ad features switch.
+
+🔹 Conclusion
+Summarize each part:
+
+Part I: ML-enhanced instruments are still weak in practice; causal inference from clicks is fragile.
+
+Part II: Forecast bias can systematically distort click-based predictions, even with strong instruments.
+
+Implication: Clicks are not just endogenous — they may be unreliable forecasters. Better instruments or 
+experimental designs are needed.
+
+🔹 Acknowledgments
+Credit advisors, data providers, or funding sources.
+
+🔹 References
+Include Chetty et al. (2014), key econometrics texts, and any ML or ad analytics papers you cite.
+
