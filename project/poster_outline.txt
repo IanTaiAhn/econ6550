@@ -177,7 +177,6 @@ the forecast bias framework as a diagnostic tool for validating predictive metri
 
 
 
-
 🟣 Introduction
 Clicks are widely used to measure ad effectiveness, yet they are often endogenous — influenced by latent user intent and 
 ad targeting. This endogeneity undermines causal inference and may distort predictions of conversion outcomes. Inspired 
