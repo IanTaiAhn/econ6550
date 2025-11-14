@@ -147,3 +147,85 @@ Credit advisors, data providers, or funding sources.
 🔹 References
 Include Chetty et al. (2014), key econometrics texts, and any ML or ad analytics papers you cite.
 
+
+NICE .
+
+Following this Jupyter Notebook, please write up exerpts on these sections listed below.
+
+Introduction, Research Goal, Methods, Figures and Results, Conclusion, Acknowledgements, and References?
+
+##############################################POSTER OUTLINE BEGINNING#################################################
+🧾 Poster Abstract
+Clicks, Instruments, and Forecast Bias: Evaluating Causal Inference in Digital Advertising
+
+This study investigates the reliability of click-based measures in estimating and forecasting ad effectiveness. 
+In Part I, we simulate ad impression data to compare Ordinary Least Squares (OLS) and Two-Stage Least Squares (2SLS)
+estimates of the causal effect of clicks on conversion rates. Using machine learning–engineered instruments derived
+from ad features, we demonstrate that strong instruments can recover the true causal effect, while OLS suffers from 
+endogeneity bias.
+
+In Part II, we adapt Raj Chetty’s forecast bias framework to the advertising domain. We test whether 
+click-based forecasts systematically mispredict conversion outcomes across ad configurations. Using synthetic data with 
+known causal structure, we conduct two validation exercises: (1) a calibration slope test showing that OLS forecasts are 
+biased (slope ≈ 0.32) while 2SLS forecasts are unbiased (slope ≈ 1.03); and (2) an event-style analysis comparing 
+forecasted vs. actual conversion changes following simulated ad feature “shocks.” Results show that 2SLS corrects 
+forecast bias, while OLS consistently overpredicts.
+
+Together, these findings highlight the dual role of endogeneity: it distorts both causal inference and predictive 
+validity. We conclude that clicks may be unreliable as forecasting measures unless instrumented properly, and we propose 
+the forecast bias framework as a diagnostic tool for validating predictive metrics in digital advertising.
+
+
+
+
+🟣 Introduction
+Clicks are widely used to measure ad effectiveness, yet they are often endogenous — influenced by latent user intent and 
+ad targeting. This endogeneity undermines causal inference and may distort predictions of conversion outcomes. Inspired 
+by Raj Chetty’s forecast bias framework in education, this study investigates whether clicks are reliable both as causal 
+regressors and as forecasting tools in digital advertising.
+
+🟣 Research Goal
+Part I: Evaluate whether machine learning–enhanced instruments can recover the true causal effect of clicks on 
+conversions using 2SLS.
+
+Part II: Test whether click-based forecasts systematically mispredict conversion outcomes using Chetty-style validation 
+techniques.
+
+🟣 Methods
+We simulate synthetic ad impression data with known causal structure:
+Endogeneity: Clicks are influenced by latent user intent.
+Instruments: Ad_Type × Ad_Placement combinations are used to predict clicks.
+Outcome: Conversion_Rate is generated with a true causal effect of clicks.
+
+Two models are fit:
+OLS: Treats clicks as exogenous.
+2SLS: Uses instruments to correct for endogeneity.
+
+We apply two forecast bias diagnostics:
+Calibration slope test: Regress actual conversion rates on predicted rates across ad cohorts.
+Event-style validation: Simulate ad configuration “shocks” and compare forecasted vs. actual changes in conversion rates.
+
+🟣 Figures and Results
+Instrument strength: ML-enhanced instruments yield strong first-stage F-statistics.
+Calibration slope:
+OLS slope ≈ 0.32 → systematic overprediction.
+2SLS slope ≈ 1.03 → unbiased forecasts.
+
+Event-style validation:
+OLS forecasts overshoot actual conversion changes.
+2SLS forecasts align closely with observed outcomes.
+
+These results demonstrate that 2SLS corrects both causal bias and forecast bias when instruments are strong.
+
+🟣 Conclusion
+This study shows that endogeneity in click data distorts both causal inference and predictive accuracy. While OLS overestimates conversion effects and mispredicts outcomes, 2SLS — when supported by strong instruments — recovers the true causal effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
+
+🟣 Acknowledgements
+We thank the developers of the linearmodels and statsmodels Python libraries, and acknowledge Raj Chetty’s foundational work on forecast bias in education, which inspired this framework. Gratitude also goes to mentors and peers who provided feedback on early drafts and simulation design.
+
+🟣 References
+Chetty, R., Friedman, J. N., & Rockoff, J. E. (2014). Measuring the impacts of teachers II: Teacher value-added and student outcomes in adulthood. American Economic Review, 104(9), 2633–2679.
+Stock, J. H., & Yogo, M. (2005). Testing for weak instruments in linear IV regression. Identification and Inference for Econometric Models.
+Wooldridge, J. M. (2010). Econometric Analysis of Cross Section and Panel Data. MIT Press.
+Python packages: linearmodels, statsmodels, pandas, numpy, matplotlib, seaborn.
+##############################################POSTER OUTLINE END#################################################
