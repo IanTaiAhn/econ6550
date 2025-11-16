@@ -164,12 +164,14 @@ estimates of the causal effect of clicks on conversion rates. Using machine lear
 from ad features, we demonstrate that strong instruments can recover the true causal effect, while OLS suffers from 
 endogeneity bias.
 
-In Part II, we adapt Raj Chetty’s forecast bias framework to the advertising domain. We test whether 
-click-based forecasts systematically mispredict conversion outcomes across ad configurations. Using synthetic data with 
-known causal structure, we conduct two validation exercises: (1) a calibration slope test showing that OLS forecasts are 
-biased (slope ≈ 0.32) while 2SLS forecasts are unbiased (slope ≈ 1.03); and (2) an event-style analysis comparing 
-forecasted vs. actual conversion changes following simulated ad feature “shocks.” Results show that 2SLS corrects 
-forecast bias, while OLS consistently overpredicts.
+Part II: Forecast Bias in Click-Based Predictions Building on Raj Chetty’s (2014) forecast bias framework, we adapt the 
+methodology to the advertising domain. Using synthetic data with a known causal structure, we examine whether 
+click-based forecasts systematically mispredict conversion outcomes across ad configurations. Two validation exercises 
+are conducted: (1) a calibration slope test, where OLS-based forecasts exhibit attenuation bias while 2SLS-based 
+forecasts align more closely with the true causal effect; and (2) an event-style analysis, where simulated shocks to ad 
+features reveal that OLS forecasts tend to overpredict conversion changes, while 2SLS forecasts reduce bias. Although 
+the implementation is preliminary and subject to limitations, results suggest that instrumented approaches can correct 
+systematic forecast bias in advertising contexts.
 
 Together, these findings highlight the dual role of endogeneity: it distorts both causal inference and predictive 
 validity. We conclude that clicks may be unreliable as forecasting measures unless instrumented properly, and we propose 
@@ -227,4 +229,64 @@ Chetty, R., Friedman, J. N., & Rockoff, J. E. (2014). Measuring the impacts of t
 Stock, J. H., & Yogo, M. (2005). Testing for weak instruments in linear IV regression. Identification and Inference for Econometric Models.
 Wooldridge, J. M. (2010). Econometric Analysis of Cross Section and Panel Data. MIT Press.
 Python packages: linearmodels, statsmodels, pandas, numpy, matplotlib, seaborn.
+
 ##############################################POSTER OUTLINE END#################################################
+
+🟣 Title of Research Project (simple, no jargon)
+Clicks, Causality, and Forecast Bias in Digital Ads
+
+Ian Last Name¹, First Name Last Name², First Name Last Name³ ¹Department of Economics, ²Department of Integrative Biology, ³Department of Computer Science Weber State University
+
+🟣 Introduction
+Clicks are widely used to measure ad effectiveness, but they’re often endogenous — shaped by user intent and targeting. This undermines causal inference and may distort predictions. 
+Inspired by Raj Chetty’s forecast bias framework in education, we test whether clicks are reliable for both causal estimation and forecasting in digital advertising.
+
+🟣 Research Goal
+Part I: Estimate the causal effect of clicks on conversions using machine learning–enhanced instruments and 2SLS.
+
+Part II: Diagnose forecast bias in click-based predictions using Chetty-style calibration and event-style validation.
+
+🟣 Methods
+We simulate synthetic ad impression data with known causal structure:
+
+Endogeneity: Clicks are influenced by latent user intent.
+Instruments: Ad_Type × Ad_Placement combinations predict clicks.
+Outcome: Conversion_Rate is generated with a true causal effect of clicks.
+
+Two models are fit:
+
+OLS: Treats clicks as exogenous.
+2SLS: Uses instruments to correct for endogeneity.
+
+Forecast bias diagnostics:
+
+Calibration slope test: Regress actual conversion rates on predicted rates across ad cohorts.
+Event-style validation: Simulate ad configuration “shocks” and compare forecasted vs. actual changes.
+
+🟣 Figures and Results
+Instrument Strength
+
+ML-enhanced instruments yield strong first-stage F-statistics.
+Calibration Slope
+OLS slope ≈ 0.32 → biased forecasts
+2SLS slope ≈ 1.03 → calibrated forecasts
+
+Event-Style Validation
+OLS forecasts overshoot actual conversion changes
+2SLS forecasts align closely with observed outcomes
+
+Figures to include:
+Scatter plot with calibration slopes
+Bar chart comparing forecast bias across cohorts
+
+🟣 Conclusion
+Endogeneity in click data distorts both causal inference and predictive accuracy. OLS overestimates conversion effects and mispredicts outcomes. 2SLS — when supported by strong instruments — recovers the true causal 
+effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
+
+🟣 Acknowledgments
+We thank the developers of the linearmodels and statsmodels Python libraries. We also acknowledge Raj Chetty’s foundational work on forecast bias in education, which inspired this framework. Gratitude to mentors and 
+peers who provided feedback on early drafts and simulation design.
+
+🟣 References
+Chetty, R., Friedman, J. N., & Rockoff, J. E. (2014). Measuring the impacts of teachers II: Teacher value-added and student outcomes in adulthood. American Economic Review, 104(9), 2633–2679. 
+Stock, J. H., & Yogo, M. (2005). Testing for weak instruments in linear IV regression. Python packages: linearmodels, statsmodels, pandas, numpy, matplotlib, seaborn.

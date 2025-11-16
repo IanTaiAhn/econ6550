@@ -111,3 +111,76 @@ what drives clicks?
 Okay professor
 
 I still wanted to use 2SLS with my ml feature engineered thang...
+
+
+# Define cohorts by Ad_Type × Ad_Placement
+df_combined['Cohort'] = df_combined['Ad_Type'] + '_' + df_combined['Ad_Placement']
+
+# Aggregate actual and predicted conversion rates by cohort
+group_summary = df_combined.groupby('Cohort').agg({
+    'Conversion_Rate': 'mean',
+    'CR_pred_OLS': 'mean',
+    'CR_pred_2SLS': 'mean',
+    'Clicks': 'mean'
+}).reset_index()
+
+# Compute forecast bias
+group_summary['Bias_OLS'] = group_summary['CR_pred_OLS'] - group_summary['Conversion_Rate']
+group_summary['Bias_2SLS'] = group_summary['CR_pred_2SLS'] - group_summary['Conversion_Rate']
+
+
+# OLS calibration: actual ~ predicted (OLS)
+X_ols = sm.add_constant(group_summary['CR_pred_OLS'])
+y_ols = group_summary['Conversion_Rate']
+calib_ols = sm.OLS(y_ols, X_ols).fit()
+
+# 2SLS calibration: actual ~ predicted (2SLS)
+X_2sls = sm.add_constant(group_summary['CR_pred_2SLS'])
+y_2sls = group_summary['Conversion_Rate']
+calib_2sls = sm.OLS(y_2sls, X_2sls).fit()
+
+# Print calibration slopes
+print("Calibration slope (OLS):", calib_ols.params[1])
+print("Calibration slope (2SLS):", calib_2sls.params[1])
+
+# Calibration plot
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='CR_pred_OLS', y='Conversion_Rate', data=group_summary, label='OLS')
+sns.scatterplot(x='CR_pred_2SLS', y='Conversion_Rate', data=group_summary, label='2SLS')
+plt.plot([0, 1], [0, 1], 'k--', label='Perfect forecast')
+plt.xlabel('Predicted Conversion Rate')
+plt.ylabel('Actual Conversion Rate')
+plt.title('Calibration Plot: Forecast Bias Across Cohorts')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Event style validation 
+# Shock
+# Example: simulate a shock by changing Ad_Type for half the sample
+df_event = df_combined.copy()
+mask = df_event['Ad_Type'] == 'Banner'
+df_event.loc[mask, 'Ad_Type'] = 'Video'
+df_event['Cohort'] = df_event['Ad_Type'] + '_' + df_event['Ad_Placement']
+
+# Forecasted mean conversion rates by cohort
+forecast_summary = df_event.groupby('Cohort').agg({
+    'CR_pred_OLS': 'mean',
+    'CR_pred_2SLS': 'mean'
+}).reset_index()
+
+actual_summary = df_event.groupby('Cohort')['Conversion_Rate'].mean().reset_index()
+
+event_comparison = forecast_summary.merge(actual_summary, on='Cohort')
+event_comparison['ForecastBias_OLS'] = event_comparison['CR_pred_OLS'] - event_comparison['Conversion_Rate']
+event_comparison['ForecastBias_2SLS'] = event_comparison['CR_pred_2SLS'] - event_comparison['Conversion_Rate']
+
+plt.figure(figsize=(8,6))
+plt.bar(event_comparison['Cohort'], event_comparison['ForecastBias_OLS'], alpha=0.6, label='OLS Forecast Bias')
+plt.bar(event_comparison['Cohort'], event_comparison['ForecastBias_2SLS'], alpha=0.6, label='2SLS Forecast Bias')
+plt.axhline(0, color='black', linestyle='--')
+plt.ylabel('Forecast Bias (Predicted - Actual)')
+plt.title('Event-Style Forecast Bias Validation')
+plt.xticks(rotation=45, fontsize=9)  # Rotate labels and shrink font size
+plt.legend()
+plt.show()
