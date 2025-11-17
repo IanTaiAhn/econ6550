@@ -300,3 +300,79 @@ Figures and Results Part 2:
  forecasts remain reliable under change. Both measure forecast bias, but calibration is static 
  while event validation is dynamic — together they mirror Chetty’s 2014 reliability framework of 
  subgroup calibration and event study validation.”
+
+
+ Some help with the final conclusion image...
+
+ 🧩 Difference Between “Figures” and “Results”
+Section	Purpose	Typical Content
+Figures	Visual evidence	Charts, diagrams, plots, tables, flowcharts — anything that visually 
+supports your methods or findings
+Results	Interpretation	Textual summary of what the figures show: key findings, patterns, 
+statistical significance, effect sizes, etc.
+Figures are the raw visuals. Results are the takeaways — what those visuals mean in context.
+
+Example: A bar chart showing forecast bias across cohorts goes in Figures. The statement “2SLS 
+forecast bias is consistently lower than OLS across all cohorts” goes in Results.
+
+🧠 What to Put in the “Conclusion” Section
+The Conclusion is your final synthesis. It should answer:
+
+What did we learn?
+
+Why does it matter?
+
+What are the limitations?
+
+What’s next?
+
+🔑 Good structure for your poster’s conclusion:
+Summary of findings:
+
+“We find that OLS overstates the effect of clicks due to endogeneity, while 2SLS recovers the
+ true causal effect.”
+
+Forecast bias insight:
+
+“Chetty-style diagnostics show that 2SLS predictions are better calibrated and more robust to
+ simulated shocks.”
+
+Limitations:
+
+“Our validation is based on simulated data and lacks real-time dynamics or external shocks.”
+
+Future work:
+
+“Next steps include applying this framework to real ad data and incorporating longitudinal 
+variation.”
+
+🖼️ What Image to Show in the Conclusion Section
+The conclusion image should reinforce your main insight. Here are strong options:
+
+Option 1: Final Comparison Plot
+A clean bar chart or forest plot comparing:
+
+OLS estimate
+
+2SLS estimate
+
+True causal effect (dotted line at 0.08)
+
+Label: “2SLS recovers the true effect; OLS is biased.”
+
+Option 2: Forecast Bias Summary
+Side-by-side bar chart of average forecast bias (OLS vs 2SLS)
+
+Label: “2SLS predictions are better calibrated across cohorts.”
+
+Option 3: Schematic Summary
+A DAG or flowchart showing:
+
+Instrument → Clicks → Conversion
+
+Confounder affecting both Clicks and Conversion
+
+Label: “Instrument corrects for endogeneity in click-based predictions.”
+
+Would you like help generating one of those conclusion images now? I can create a clean schematic
+ or comparison plot that visually wraps up your poster’s story. Just say the word.
