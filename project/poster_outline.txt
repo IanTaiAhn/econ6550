@@ -235,7 +235,7 @@ Python packages: linearmodels, statsmodels, pandas, numpy, matplotlib, seaborn.
 🟣 Title of Research Project (simple, no jargon)
 Clicks, Causality, and Forecast Bias in Digital Ads
 
-Ian Last Name¹, First Name Last Name², First Name Last Name³ ¹Department of Economics, ²Department of Integrative Biology, ³Department of Computer Science Weber State University
+Ian Last Name¹, First Name Last Name², First Name Last Name³ ¹Department of Business Economics, ²Department of Integrative Biology, ³Department of Computer Science Weber State University
 
 🟣 Introduction
 Clicks are widely used to measure ad effectiveness, but they’re often endogenous — shaped by user intent and targeting. This undermines causal inference and may distort predictions. 
@@ -247,7 +247,7 @@ Part I: Estimate the causal effect of clicks on conversions using machine learni
 Part II: Diagnose forecast bias in click-based predictions using Chetty-style calibration and event-style validation.
 
 🟣 Methods
-We simulate synthetic ad impression data with known causal structure:
+We simulate synthetic ad impression data with known causal structure inspired by the original dataset:
 
 Endogeneity: Clicks are influenced by latent user intent.
 Instruments: Ad_Type × Ad_Placement combinations predict clicks.

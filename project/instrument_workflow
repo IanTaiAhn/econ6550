@@ -1,0 +1,14 @@
+// ML Instrument Workflow
+digraph {
+	A [label="Policy-side Features
+(Age, Income, Ad Type, etc.)"]
+	B [label="ML Ensemble
+(Stacking/RF/GB/XGB)"]
+	C [label="Predicted Clicks
+Instrument (Z)"]
+	D [label="Diagnostics
+R², F-stat, Stock-Yogo"]
+	A -> B
+	B -> C
+	C -> D
+}
