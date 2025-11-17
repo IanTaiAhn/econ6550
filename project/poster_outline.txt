@@ -219,7 +219,10 @@ OLS forecasts overshoot actual conversion changes.
 These results demonstrate that 2SLS corrects both causal bias and forecast bias when instruments are strong.
 
 🟣 Conclusion
-This study shows that endogeneity in click data distorts both causal inference and predictive accuracy. While OLS overestimates conversion effects and mispredicts outcomes, 2SLS — when supported by strong instruments — recovers the true causal effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
+This study shows that endogeneity in click data distorts both causal inference and predictive accuracy. 
+While OLS overestimates conversion effects and mispredicts outcomes, 2SLS — when supported by strong instruments
+ — recovers the true causal effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework
+  to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
 
 🟣 Acknowledgements
 We thank the developers of the linearmodels and statsmodels Python libraries, and acknowledge Raj Chetty’s foundational work on forecast bias in education, which inspired this framework. Gratitude also goes to mentors and peers who provided feedback on early drafts and simulation design.
@@ -280,8 +283,10 @@ Scatter plot with calibration slopes
 Bar chart comparing forecast bias across cohorts
 
 🟣 Conclusion
-Endogeneity in click data distorts both causal inference and predictive accuracy. OLS overestimates conversion effects and mispredicts outcomes. 2SLS — when supported by strong instruments — recovers the true causal 
-effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
+Endogeneity in click data distorts both causal inference and predictive accuracy. OLS overestimates conversion effects 
+and mispredicts outcomes. 2SLS — when supported by strong instruments — recovers the true causal 
+effect and produces calibrated forecasts. We adapt Raj Chetty’s forecast bias framework to digital advertising,
+ offering a diagnostic lens for validating predictive metrics in observational settings.
 
 🟣 Acknowledgments
 We thank the developers of the linearmodels and statsmodels Python libraries. We also acknowledge Raj Chetty’s foundational work on forecast bias in education, which inspired this framework. Gratitude to mentors and 
@@ -376,3 +381,12 @@ Label: “Instrument corrects for endogeneity in click-based predictions.”
 
 Would you like help generating one of those conclusion images now? I can create a clean schematic
  or comparison plot that visually wraps up your poster’s story. Just say the word.
+
+
+ Okay.
+11/17/2025:
+ Endogeneity in click data distorts both causal inference and predictive accuracy. OLS overestimates conversion effects 
+ and mispredicts outcomes. 2SLS — when supported by strong instruments — recovers the true causal effect and produces 
+ calibrated forecasts. To construct such instruments, we employ machine learning ensemble methods that combine multiple 
+ predictors into a robust signal, strengthening identification and mitigating bias. We adapt Raj Chetty’s forecast bias 
+ framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
