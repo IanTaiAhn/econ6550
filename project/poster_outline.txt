@@ -290,3 +290,13 @@ peers who provided feedback on early drafts and simulation design.
 🟣 References
 Chetty, R., Friedman, J. N., & Rockoff, J. E. (2014). Measuring the impacts of teachers II: Teacher value-added and student outcomes in adulthood. American Economic Review, 104(9), 2633–2679. 
 Stock, J. H., & Yogo, M. (2005). Testing for weak instruments in linear IV regression. Python packages: linearmodels, statsmodels, pandas, numpy, matplotlib, seaborn.
+
+
+
+##11/16/2025##
+Figures and Results Part 2:
+“The calibration plot shows whether OLS and 2SLS forecasts are systematically biased across cohorts
+ in the cross‑section. The event‑style validation goes further, simulating a shock to test whether 
+ forecasts remain reliable under change. Both measure forecast bias, but calibration is static 
+ while event validation is dynamic — together they mirror Chetty’s 2014 reliability framework of 
+ subgroup calibration and event study validation.”
