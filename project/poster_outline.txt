@@ -383,6 +383,21 @@ Would you like help generating one of those conclusion images now? I can create 
  or comparison plot that visually wraps up your poster’s story. Just say the word.
 
 
+This study investigates the reliability of click-based measures in estimating and forecasting ad effectiveness. 
+In Part I, we simulate ad impression data to compare Ordinary Least Squares (OLS) and Two-Stage Least Squares (2SLS)
+estimates of the causal effect of clicks on conversion rates. Using machine learning–engineered instruments derived
+from ad features, we demonstrate that strong instruments can recover the true causal effect, while OLS suffers from 
+endogeneity bias.
+
+Part II: Forecast Bias in Click-Based Predictions Building on Raj Chetty’s (2014) forecast bias framework, we adapt the 
+methodology to the advertising domain. Using synthetic data with a known causal structure, we examine whether 
+click-based forecasts systematically mispredict conversion outcomes across ad configurations. Two validation exercises 
+are conducted: (1) a calibration slope test, where OLS-based forecasts exhibit attenuation bias while 2SLS-based 
+forecasts align more closely with the true causal effect; and (2) an event-style analysis, where simulated shocks to ad 
+features reveal that OLS forecasts tend to overpredict conversion changes, while 2SLS forecasts reduce bias. Although 
+the implementation is preliminary and subject to limitations, results suggest that instrumented approaches can correct 
+systematic forecast bias in advertising contexts.
+
  Okay.
 11/17/2025:
  Endogeneity in click data distorts both causal inference and predictive accuracy. OLS overestimates conversion effects 
@@ -390,3 +405,109 @@ Would you like help generating one of those conclusion images now? I can create 
  calibrated forecasts. To construct such instruments, we employ machine learning ensemble methods that combine multiple 
  predictors into a robust signal, strengthening identification and mitigating bias. We adapt Raj Chetty’s forecast bias 
  framework to digital advertising, offering a diagnostic lens for validating predictive metrics in observational settings.
+
+ Alright. So I need to come up with a conclusion for this.
+ In my own words...
+ Due to the nature of the second part of this study being acheived through synthetic data generation no hard conclusions
+ can be made, but that doesn't dismiss the pedagogical nature of this study. While the real data failed due to excessive 
+ noise, and the "Click_time" column having little to no variation which lead to no meaningful predictors in the real dataset were 
+ able to help predict the "Clicks" column to create an instrument.
+ However, a real pipeline to create a ML based instrument leveraging off of preprocessing, interaction features, and ensemble
+ modeling was implemented with great success. This ML-instrument was able to be used in an endogenity study where OLS
+ failed and 2SLS succeeded, thus laying the groundwork for real implementation with real data.
+ Further work and research will be required to fully implement Chetty's 2014 forecast bias techniques because while inspired,
+ the calibration bias lacked the lagged variables, and the the event-style shocks were real exogneous shocks unlike the 
+ simulated shock induced into the synthetic dataset.
+
+ Claude Help:
+Due to the nature of the second part of this study being achieved through synthetic data generation, no hard conclusions
+can be made, but that doesn't dismiss the pedagogical value of this work. The real data failed due to excessive noise 
+and minimal variation in the "Click_time" column, resulting in no meaningful predictors for instrumenting the "Clicks" 
+column. This is due to the data collection of the column "Click_time" because the time stamp for every observation was 20:45,
+with slight variation in microseconds.
+However, a complete ML-based instrumental variable pipeline was successfully implemented, incorporating preprocessing, 
+interaction features, and ensemble modeling. The F-statistic was well above 10, Stock-Yogo tests passed, and Cragg–Donald
+statistic was high as well.
+This ML-instrument demonstrated its utility in an endogeneity study where OLS failed and 2SLS succeeded, establishing a 
+proof-of-concept for real-world implementation. Yet the circular reasoning here is concerning: if your instrument was 
+constructed from the same noisy data that failed initially, how confident can we be in the 2SLS results?
+Further work is required to fully implement Chetty's 2014 forecast bias techniques. While inspired by his framework, 
+the calibration bias estimation lacked the crucial lagged variables, and the event-style shocks were genuine exogenous
+ shocks—unlike the simulated shock artificially induced into the synthetic dataset. 
+ 
+ This synthetic-to-real gap is more
+  than a limitation; it's a fundamental validity concern that undermines claims about establishing "groundwork for real 
+  implementation."
+
+
+Key issues: What are your first-stage F-statistics? How do you address the weak instrument problem? Without validation 
+metrics, this reads more like methodological exercise than applied research.
+
+
+Due to the nature of the second part of this study being achieved through synthetic data generation, no hard conclusions
+can be made, but that doesn't dismiss the pedagogical value of this work. This study showed that ML may be combined with IV
+instrumentation and in theory works in reducing endogeneity. The real data failed due to excessive noise 
+and minimal variation in the "Click_time" column, resulting in no meaningful predictors for instrumenting the "Clicks"
+column. Specifically, the data collection process captured all observations at timestamp 20:45 with only 
+microsecond-level variation. This clear data quality issue rendered the variable unusable as an instrument. 
+This represents a fundamental flaw in the original data collection design rather than a theoretical limitation.
+However, a complete ML-based instrumental variable pipeline was successfully implemented on synthetic data, 
+incorporating preprocessing, interaction features, and ensemble modeling. The first-stage F-statistic exceeded 10, 
+Stock-Yogo weak instrument tests were passed, and the Cragg-Donald statistic confirmed instrument strength. While these 
+diagnostics are encouraging, they validate only the synthetic implementation. This ML-instrument demonstrated its utility
+in an endogeneity study where OLS failed and 2SLS succeeded, establishing a proof-of-concept for the methodological 
+pipeline even though endoegneity was baked into the synthetic data.
+"On the flip-side, this study may also serve as validation that garbage in, garbage out rings true. No amount
+of ML feature engineering can create a strong instrument from weak predictors."
+"The critical limitation remains: the synthetic data was designed to produce these results. The instrument worked because
+the data generation process embedded the necessary relationships—when applied to real data with weak predictors, 
+no amount of ML feature engineering could manufacture a valid instrument. This serves as empirical validation of the 
+'garbage in, garbage out' principle in causal inference.""
+
+Further work is required to fully implement Chetty's 2014 forecast bias techniques. While inspired by his framework, 
+the calibration bias estimation lacked the crucial lagged variables, and the event-style shocks where genuine exogenous 
+shocks—unlike the simulated shock artificially induced into the synthetic dataset. Future research should prioritize 
+either: (1) re-collecting real data with proper temporal variation, or (2) validating this approach on existing datasets 
+with known endogeneity where traditional instruments have succeeded, to benchmark the ML approach against established 
+methods.
+
+The critical limitation remains unaddressed: the synthetic data was designed to produce these results. The instrument 
+worked because the data generation process embedded the necessary relationships, not because the methodology would 
+necessarily identify valid instruments in authentic datasets with unknown data-generating processes. You've demonstrated 
+technical competency in implementing 2SLS with ML-based instruments, but haven't demonstrated that this approach solves 
+real endogeneity problems. The failed real data attempt suggests the opposite—that when predictive relationships are weak
+ or absent, no amount of ML feature engineering can manufacture a valid instrument.
+
+### split up the paragraphs...###
+The first attempt to implement IV with machine learning techniques failed due to fatal data quality issues in the 
+real-world dataset. The cause was excessive noise and minimal variation in the "Click_time" column, resulting in no 
+meaningful predictors for instrumenting the "Clicks"
+column. Specifically, the data collection process captured all observations at timestamp 20:45 with only 
+microsecond-level variation. This clear data quality issue rendered the variable unusable as an instrument. 
+This represents a fundamental flaw in the original data collection design rather than a theoretical limitation.
+No amount of ML feature engineering could manufacture a valid instrument and so this serves as empirical validation 
+of the 'garbage in, garbage out' principle in causal inference.
+While this is a valid outcome on its own, there was still curiosity in how data with valid predictors and endogenous variables
+would take an instrument created from ML techniques.
+To allow the study to continue synthetic data was generated with endogeneity baked into the "Clicks" predictor 
+and the columns used in the real dataset were used again albeit synthetically created.
+
+Endogeneity was introduced by correlating the error term with 'Clicks' (ρ = 0.08), simulating omitted variable bias to 
+test whether 2SLS could recover unbiased estimates where OLS would fail. A complete ML-based instrumental variable pipeline was successfully implemented on the data, 
+incorporating preprocessing, interaction features, and ensemble modeling. The first-stage F-statistic came out to 1744,
+which far exceeds the Stock-Yogo critical value of 10 and the Cragg-Donald statistic confirmed instrument strength.
+While these diagnostics are encouraging, they validate only the synthetic implementation. 
+This ML-instrument demonstrated its utility in an endogeneity study where OLS failed and 2SLS succeeded, 
+establishing a proof-of-concept for the methodological pipeline.
+This success allowed the study to continue to its other intended research purpose of incorporating Chetty like calibration
+bias, and event-style shock events. While inspired by his framework the implementation suffered from major issues.
+The calibration bias estimation lacked the crucial lagged variables, and the event-style shocks were genuine exogenous in Chetty's study
+unlike the simulated shock artificially induced into the synthetic dataset. The biggest issue was that the data used was 
+synthetic, and in Chetty's study there were millions of rows that were real, based on tax documents, school districts, and such.
+Overall, the two main takeaways from this study are these. Instruments created by machine learning techniques should be
+validated and tested on real proven datasets so that ML created IVs may be validated against established IV creation methods.
+Chetty's techniques should be implemented with stricter terms in order to re-create a more accurate exploration of his 
+2014 study. Despite these limitations, this study demonstrates the technical feasibility of integrating ML feature 
+engineering into the first-stage IV estimation, suggesting a promising avenue for instrument construction when combined 
+with appropriate data quality and validation protocols.
+
