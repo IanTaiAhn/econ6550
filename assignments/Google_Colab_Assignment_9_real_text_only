@@ -1,0 +1,5 @@
+(1) Collect time series data on at least two variables and discuss why those variables might be cointegrated. Perform ADF tests on the data and the differenced data to determine if it is stationary or I(1). Perform the Johansen procedure to 
+determine the number of cointegrating vectors in the system. Estimate a VAR or VECM based on the results of the ADF tests and Johansen procedure. Make assumptions to identify structural shocks. Explain why this requires assumptions and how those assumptions lead 
+to the identification of structural shocks. Display at least one IRF chart based on a structural shock and interpret it.
+
+ 
