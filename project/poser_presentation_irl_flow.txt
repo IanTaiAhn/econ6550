@@ -1,0 +1,34 @@
+Introduce my name, and such, and the main topic of the poster which is Instrument Variables created using Machine learning techniques, and chetty-sinpired forecast bias based on his shocks, and event-syle stuff.
+
+Explored the data by looking at variance, dataset shape, and null values and such..
+Talk about my naive OLS model that was used for model validation since I needed to check if clicks had endogenity, hetereoskedasticity, and autocorrelation before I took off with my goals.
+Hausman-Wu → endogeneity
+Breusch-Pagan → heteroskedasticity
+Durbin-Watson & Ljung-Box → autocorrelation
+
+Once I confirmed this dataset was useable I began preprocessing:
+follow preprocessing...
+I decided to winsorze my data because I had an unusual amount of outliers. I decided to set them to the 5th, and 95th percentiles as a default. This helped with distortion in the categorical columns since they were heavily skewed.
+
+Talk about all of the interaction terms, and how we feature engineered abunch of good ones like location x income, time series data split into days, month, and further like buisness hours, etc..
+
+Then talk about the model stacking archtiecture used to create my instrument variable.
+Features (Age, Income, Ad attributes, Time) 
+   ↓
+Base Models (RF, GB, XGB) → Out-of-fold predictions
+   ↓
+Meta-Model (Ridge Regression) → Final Clicks_predicted
+In this stacking ensemble, Random Forest and Gradient Boosting each generate predictions of Clicks. 
+These predictions are then fed into Ridge Regression, which learns the best linear combination of them.
+RF contributes stability, GB contributes precision, and Ridge ensures balance and regularization.
+
+My project would have ended here because the created instruemnt was weak and after adding 50+ featuer interactions and training for longer or using different archtiecture there was no increase in f-statsitic for the created instrument.
+I didn't want my study to end without playing around with Chetty's forecast bias so I used the same columns and rows from the original dataset to synthetically create one with endogeneity on clicks to show that OLS was fixed with 2SLS.
+I was also able to continue my study albeit now more of pedagogical and not anything I could prove with substantial evidence due to the use of synthetic data.
+
+OLS shows that Clicks was way more positive than it truly was from the synthetic data. We can see that from coefficients, and the true added effect we gave Clicks.
+OLS is off by like 10% while 2SLS corrects it to be much closer to the real true effect.
+
+Thus we can conclude our instrument created from machine learning was powerful enough to correct for endogeneity in the system when used with 2SLS. NOT DONE YET!
+
+Further study into how Chetty's work could work in tandem was explore but was lacking.
